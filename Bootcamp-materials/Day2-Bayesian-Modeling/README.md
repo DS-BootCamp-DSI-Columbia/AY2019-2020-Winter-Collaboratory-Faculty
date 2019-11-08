@@ -34,7 +34,5 @@
 
 To get started here are some online resources for programming skills in R and for setting up the required R development environment.
 
-+ [DataCamp's free R Tutorial](https://www.datacamp.com/courses/free-introduction-to-r)
-
-#### Install Stan
++ [R for Data Science](https://r4ds.had.co.nz/)
 
