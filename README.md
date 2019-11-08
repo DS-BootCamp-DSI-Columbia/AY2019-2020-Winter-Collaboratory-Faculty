@@ -1,4 +1,4 @@
-[**[Direct ENTER]**](/Bootcamp-materials/) for bootcamp materials. [**Apply for the boot camp**](https://goo.gl/forms/1UiJgkoN2FFSMYBu1) (Deadline 11:59pm 12/6/2019)
+[**[Direct ENTER]**](/Bootcamp-materials/) for bootcamp materials. [**Apply for the boot camp**](https://forms.gle/TLGbb1NA6E9qzK3V6) (Deadline 11:59pm 12/6/2019)
 
 ![collaboratory logo](Misc-files/collaboratory2.png)
 
@@ -12,7 +12,7 @@ The [Collaboratory@Columbia](http://collaboratory.columbia.edu/) is pleased to a
 
 The boot camp's *mission* is to enable Columbia faculty members, postdoctoral researchers and senior Ph.D. students to adopt more state-of-the-art data-science tools in their research and educational activities. To achieve this goal, we have designed a new modular model that is different from the previous week-long format. On **January 15th-17th, 2020**, we will have a *data science skill camp* that consists of three one-day long modules taught by instructors on *machine learning*, *Bayesian modeling* and *text mining*. 
 
-[**Apply for the boot camp**](https://goo.gl/forms/1UiJgkoN2FFSMYBu1) (Deadline 11:59pm 12/6/2019)
+[**Apply for the boot camp**](https://forms.gle/TLGbb1NA6E9qzK3V6) (Deadline 11:59pm 12/6/2019)
 
 ----
 
@@ -32,7 +32,7 @@ The boot camp's *mission* is to enable Columbia faculty members, postdoctoral re
 
 - Click [here](https://github.com/DS-BootCamp-Collaboratory-Columbia/AY2019-2020-Winter/blob/master/Bootcamp-materials/README.md) to **START** (detailed course information, pre-requisites, and setup instructions.)
 
-[**Apply for the boot camp**](https://goo.gl/forms/1UiJgkoN2FFSMYBu1) (Deadline 11:59pm 12/6/2019)
+[**Apply for the boot camp**](https://forms.gle/TLGbb1NA6E9qzK3V6) (Deadline 11:59pm 12/6/2019)
 
 ![deadline](Misc-files/deadline.png)
 
