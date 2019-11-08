@@ -38,7 +38,7 @@ The boot camp's *mission* is to enable Columbia faculty members, postdoctoral re
 
 ----
 ### About the instructors and organizers
-![andy](Misc-files/andy.jpeg)![Ben](Misc-files/ben.jpeg) ![Wayne](Misc-files/wayne.png) ![tian](Misc-files/tian.jpeg)
+![andy](Misc-files/andy.jpeg) ![Ben](Misc-files/ben.jpeg) ![Wayne](Misc-files/wayne.jpg) ![tian](Misc-files/tian.jpeg)
 
 **[Andreas Mueller](http://amueller.github.io/)** ([@amueller](https://github.com/amueller)) is a lecturer at the [Data Science Institute](http://datascience.columbia.edu/)at Columbia University and author of the O’Reilly book “[Introduction to Machine Learning with Python](http://amueller.github.io/#book)”, describing a practical approach to machine learning with python and scikit-learn. He is one of the core developers of the scikit-learn machine learning library, and he has been co-maintaining it for several years. He is also a [Software Carpentry](http://software-carpentry.org/) instructor. In the past, he worked at the NYU Center for Data Science on open source and open science, and as Machine Learning Scientist at Amazon. You can find his full  cv [here](http://amueller.github.io/cv_andreas_mueller.pdf). His mission is to create open tools to lower the barrier of entry for machine learning applications, promote reproducible science and democratize the access to high-quality machine learning algorithms.
 
