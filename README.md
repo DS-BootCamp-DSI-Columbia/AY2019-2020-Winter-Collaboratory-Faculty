@@ -25,7 +25,7 @@ The boot camp's *mission* is to enable Columbia faculty members, postdoctoral re
 - **What**: This year, to encourage participation from Columbia faculty, we have adopted a modular structure for the boot camp with four stand-alone modules:
 	- [Day 1] [Introduction to Machine Learning with Python/sklearn.](/Bootcamp-materials/Day1-Machine-Learning/) with Andreas Mueller 
 	- [Day 2] [Bayesian Modeling with Stan.](/Bootcamp-materials/Day2-Bayesian-Modeling/) with Ben Goodrich
-	- [Day 3] [Text Mining.](/Bootcamp-materials/Day3-text-mining/) with Wayne Lee
+	- [Day 3] [Text Mining.](/Bootcamp-materials/Day3-Text-Mining/) with Wayne Lee
 	- **Daily schedule**: 9am to 4pm 
 
 - **Who** should apply: Columbia full-time **faculty**, postdoctoral researchers and senior Ph.D. students who have working knowledge of basic probability and statistics, programming and data analytics, and are ready to sharpen their skills to include a training in data science research skills, and/or to create a data science teaching module in a course they teach, and/or to initiate a project in data science. **Seats are limited** (50 for each module), and we will give **priority** to faculty who have applied to or are considering applying to the [Collaboratory fellows fund](http://entrepreneurship.columbia.edu/collaboratory/collaboratory-fellows-fund/).
