@@ -18,4 +18,4 @@ Participants are required to bring their own computer to the daily sessions. The
 
 #### Day 2: Thursday, January 16 th, 2020: [Bayesian Modeling with Stan](Day2-Bayesian-Modeling/)
 
-#### Day 3: Friday, January 17th, 2020: [Text Mining](Day3-Text-Mining/)
+#### Day 3: Friday, January 17th, 2020: [Introduction to Text Mining in Python](Day3-Text-Mining/)
