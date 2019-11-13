@@ -25,7 +25,6 @@
 - [9 - Pipelines](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/09-pipelines.html)
 - [10 - Model Evaluation](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/10-model-evaluation.html)
 - [11 - Imbalanced Data](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/11-imbalanced-data.html)
-- [12 - Text Data](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/12-working-with-text-data.html)
 
 
 ### Prerequisites
