@@ -21,7 +21,7 @@ In this course we'll be using Anaconda to manage dependencies and Jupyter Notebo
   - For those comfortable with the command line, feel free to download [Miniconda](https://docs.conda.io/en/latest/miniconda.html) instead.
 
 2. Download a few packages (open source / free version) [nltk](https://www.nltk.org/install.html), [scikit-learn](https://scikit-learn.org/stable/), and [pandas](https://pandas.pydata.org/pandas-docs/stable/install.html#installing-with-anaconda). 
-  - 
+  - For those comfortable with the command line, you can run `conda create -n text-bootcamp python=3.7 nltk sklearn pandas`
 
 3. If you haven't used Python at all previously, I recommend starting with the tutorials on [learnpython.org](https://www.learnpython.org/) then moving on to [DataCamp's free Introduction to Python course](https://www.datacamp.com/courses/intro-to-python-for-data-science).
  
