@@ -8,18 +8,20 @@
 - When: Friday, January 17th, 2020
 - Where: Room 903 [SSW](http://stat.columbia.edu/location-and-directions/)
 - Instructor info: 
-	- Wayne T. Lee  
-	- email: 
-	- Twitter:    
-	- GitHub: 
+	- Wayne Tai Lee
+	- email: wtl2109 | columbia.edu
 
 ### Mandatory pre-assignment:
 
-1. Download R from https://cran.r-project.org/
+In this course we'll be using Anaconda to manage dependencies and Jupyter Notebooks to run code.
 
-2. Download RStudio Desktop (open source / free version) from https://www.rstudio.com/products/rstudio/download/#download
+1. Get [Anaconda Navigator](https://docs.anaconda.com/anaconda/navigator/) that will help us manage packages with different Python versions and install different packages.
+  - For those comfortable with the command line, feel free to download [Miniconda](https://docs.conda.io/en/latest/miniconda.html) instead.
 
-3. If you haven't used R at all previously, I recommend [DataCamp's free Introduction to R course](https://www.datacamp.com/courses/free-introduction-to-r). 
+2. Download a few packages (open source / free version) [nltk](https://www.nltk.org/install.html), [scikit-learn](https://scikit-learn.org/stable/), and [pandas](https://pandas.pydata.org/pandas-docs/stable/install.html#installing-with-anaconda). 
+  - 
+
+3. If you haven't used Python at all previously, I recommend starting with the tutorials on [learnpython.org](https://www.learnpython.org/) then moving on to [DataCamp's free Introduction to Python course](https://www.datacamp.com/courses/intro-to-python-for-data-science).
  
 ### Schedule 
 
@@ -27,8 +29,9 @@
 
 10:00am - 11:00am Lecture: 
 
-* topic 1
-* topic 2
+* Introduction to text mining
+* Regular Expression and String Manipulation in Python
+* Common text pre-processing text
 
 11:00am - 12:00pm Lab
 
@@ -36,8 +39,8 @@
 
 1:00pm - 1:45pm Lecture: 
 
-* topic 3
-* topic 4
+* Bag of words
+* Term Frequency, Inverse Term Frequency (TF-IDF)
 
 1:45pm - 2:30pm Lab
 
@@ -45,11 +48,14 @@
 
 **Optional lectures or lab time:**
 
-* 3:00pm - 4:00 pm Concluding remarks, Q & A
+3:00pm - 4:00 pm
+
+* Putting things together
+* Validation discussion
 
 ### Prerequisites
  
 + Basics of statistics (mean, variance, etc.)
-+ Basic programming skills in R
-+ Basic understanding of data structures and algorithms
-+ ...
++ Basic programming skills in Python
++ Basic understanding of data structures
+
