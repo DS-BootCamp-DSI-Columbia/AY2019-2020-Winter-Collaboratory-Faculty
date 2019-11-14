@@ -20,8 +20,8 @@ In this course we'll be using Anaconda to manage dependencies and Jupyter Notebo
 1. Get [Anaconda Navigator](https://docs.anaconda.com/anaconda/navigator/) that will help us manage packages with different Python versions and install different packages.
     - For those comfortable with the command line, feel free to download [Miniconda](https://docs.conda.io/en/latest/miniconda.html) instead.
 
-2. Download a few packages (open source / free version) into a new Environement [nltk](https://www.nltk.org/install.html), [scikit-learn](https://scikit-learn.org/stable/), and [pandas](https://pandas.pydata.org/pandas-docs/stable/install.html#installing-with-anaconda), [jupyter notebooks](https://jupyter.org/install).
-    - For those comfortable with the command line, here are three commands to get you started, on the Terminal:
+2. Download a few packages (open source / free version) into a new environement using Anaconda Navigator: [nltk](https://www.nltk.org/install.html), [scikit-learn](https://scikit-learn.org/stable/), [pandas](https://pandas.pydata.org/pandas-docs/stable/install.html#installing-with-anaconda), and [jupyter notebooks](https://jupyter.org/install).
+    - For those comfortable with the command line, here are three commands to get you started, on the Terminal or Anaconda Prompt:
       ```
       conda create -n text-bootcamp -c conda-forge python=3.7 nltk scikit-learn pandas ipykernel jupyterlab
       conda activate text-bootcamp
