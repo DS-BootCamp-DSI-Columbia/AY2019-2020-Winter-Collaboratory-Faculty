@@ -16,7 +16,7 @@ This interactive course covers the basics of text mining using Python. Unstructu
 ### Mandatory pre-assignment:
 
 1. Software setup:
-  In this course we'll be using (Anaconda)[https://www.anaconda.com/distribution/] to manage dependencies and (Jupyter Notebooks)[https://jupyter.org/] to run code. Please follow [these instructions](setup/software_setup.md) to ensure you have the correct setup.
+  In this course we'll be using [Anaconda](https://www.anaconda.com/distribution/) to manage dependencies and [Jupyter Notebooks](https://jupyter.org/) to run code. Please follow [these instructions](setup/software_setup.md) to ensure you have the correct setup.
 
 2. If you haven't used Python at all previously, I recommend starting with the tutorials on [learnpython.org](https://www.learnpython.org/) until the regular expression lesson then moving on to [DataCamp's free Introduction to Python course](https://www.datacamp.com/courses/intro-to-python-for-data-science) for more practice.
 
