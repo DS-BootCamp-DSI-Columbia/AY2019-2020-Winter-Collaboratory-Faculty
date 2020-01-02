@@ -4,7 +4,7 @@ To process the data, we will use several libraries in Python. To interface with 
 
 If our setup has potential conflicts, Anaconda will save us before it's too late!
 
-![conda dependency conflict demo](images/conda_dep_conflict_demo.png =700x)
+![conda dependency conflict demo](images/conda_dep_conflict_demo.png)
 
 Overall, installing `conda` will automatically install `Python` so there are only 2 steps:
 - Install `conda` (we will install Jupyter here as well)
@@ -18,19 +18,19 @@ There are two methods to do this depending on if you're comfortable with the com
 #### Anaconda GUI via Anaconda Navigator
 1. Please get [Anaconda Navigator](https://docs.anaconda.com/anaconda/navigator/) which is a nice GUI
 2. Launch Anaconda Navigator
-    ![Anaconda Navigator Home Screen](images/anaconda_nav_home.png =650x)
+    ![Anaconda Navigator Home Screen](images/anaconda_nav_home.png)
 3. Go to `Environments` on the left tab
 4. Click on `Create` at the bottom to create a separate environment so the materials here will not conflict with your other work
-    ![Anaconda Navigator Environment Tab](images/anaconda_nav_environments.png =400x)
+    ![Anaconda Navigator Environment Tab](images/anaconda_nav_environments.png)
 5. Create an environment called `text-mine` (or whatever you prefer) and use the dropdown menu to run under Python version 3.7, then choose `Create`.
-    ![Anaconda Navigator Creating New Environments](images/anaconda_nav_create_env.png =400x)
+    ![Anaconda Navigator Creating New Environments](images/anaconda_nav_create_env.png)
 6. Go back to the `Home` tab, make sure you use the dropdown menu behind "Applications on" to `text-mine` (or whatever you called the new environment)
-    ![Selecting new environments](images/anaconda_nav_custom_home.png =700x)
+    ![Selecting new environments](images/anaconda_nav_custom_home.png)
 7. If Jupyter has `Install` listed below it, click it to install it. Otherwise, select `Launch` instead. This should launch a few things but ultimately on your default browser, you'll see a jupyter session.
-    ![Jupyter Initial Launch Screen](images/jupyter_initial_launch.png =650x)
+    ![Jupyter Initial Launch Screen](images/jupyter_initial_launch.png)
 8. Click down your file path to where you want your work stored, then click on `New` on the far right to launch a `Python 3` session.
 9. Now you have a functioning Jupyter notebook session
-    ![initial Jupyter Session](images/initial_jupyter_session.png =650x)
+    ![initial Jupyter Session](images/initial_jupyter_session.png)
 
 #### Command line interface with Anaconda via conda
 
@@ -38,14 +38,14 @@ There are two methods to do this depending on if you're comfortable with the com
 2. Launch your command line interface for Anaconda:
     - on Windows, this is called "Anaconda Command Prompt"
     - on OSX, this is called "Terminal"
-    ![different command line prompts](images/diff_command_line_prompts.png =700x)
+    ![different command line prompts](images/diff_command_line_prompts.png)
 3. Type in the following to create an environment called `text-mine` under Python version 3.7 with Jupyter Notebooks.
 
     `conda create -n text-mine python=3.7 ipykernel jupyter`
 
     You will likely be asked to confirm with the packages it'll install. Type in `y` then enter to accept.
 4. Type in `conda activate text-mine` and notice how your command prompt changes to `text-mine`
-    ![Conda activate changes prompt](images/conda_activate_switch.png =500x)
+    ![Conda activate changes prompt](images/conda_activate_switch.png)
 
     It's possible that you have an older version of `conda`, then you should type in `source activate text-mine` instead.
 
