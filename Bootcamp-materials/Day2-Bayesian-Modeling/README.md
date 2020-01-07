@@ -32,7 +32,8 @@
 
 #### Introductional Material
 
-To get started here are some online resources for programming skills in R and for setting up the required R development environment.
+To get started here are some online resources for Bayes theorem and programming skills in R
 
++ [Bayes theorem, and making probability intuitive](https://youtu.be/HZGCoVF3YvM) and [The quick proof of Bayes' theorem](https://www.youtube.com/watch?v=U_85TaXbeIo)
 + [R for Data Science](https://r4ds.had.co.nz/)
 
