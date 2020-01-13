@@ -19,7 +19,7 @@
 - 2:00 pm Lab session: 
 - 3:00 pm Break
 - 3:30 pm Lecture: 
-- 4:00 pm
+- 4:00 pm End
 
 ### Prerequisites
 
