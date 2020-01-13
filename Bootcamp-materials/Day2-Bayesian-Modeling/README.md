@@ -7,7 +7,7 @@
 
 - When: Thursday, January 16th, 2020
 - Where: Room 903 [SSW](http://stat.columbia.edu/location-and-directions/)
-- **Topics**: This bootcamp will introduce participants to Bayesian inference using statistical software (called Stan) that has been developed primarily at Columbia University. No previous experience with Stan is necessary. In the morning, we will work through several concrete, but simple, examples of Bayesian thinking. In the afternoon, we will use Stan via a couple of R packages to perform Bayesian inference for the parameters of regression models and the implied predictions of the outcome. For a semester-long treatment of the same topics, see the instructor's YouTube [playlist](https://www.youtube.com/playlist?list=PLSZp9QshJ8wwWjrsGDbguwcPLUwHWUxo0) for GR5058 at Columbia.
+- **Topics**: This bootcamp will introduce participants to Bayesian inference using statistical software (called Stan) that has been developed primarily at Columbia University. No previous experience with Stan is necessary. In the morning, we will work through several concrete, but simple, examples of Bayesian thinking. In the afternoon, we will use Stan via a couple of R packages to perform Bayesian inference for the parameters of regression models and the implied predictions of the outcome. For a semester-long treatment of the same topics, see the instructor's YouTube [playlist](https://www.youtube.com/playlist?list=PLSZp9QshJ8wwWjrsGDbguwcPLUwHWUxo0) for GR5065 at Columbia.
 
 
 ### Schedule 
