@@ -744,6 +744,14 @@ class: center, middle
         ratio: "16:9"
     };
       var slideshow = remark.create(config_remark);
+    // Configure MathJax
+    MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [['$','$'], ['\\(','\\)']],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style'] /* removed 'code' entry*/
+    }
+    });
     </script>
   </body>
 </html>
