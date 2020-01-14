@@ -1,0 +1,299 @@
+---
+title: "Stan Language Lab"
+author: "Ben Goodrich"
+editor_options:
+  chunk_output_type: console
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{amssymb}
+   - \usepackage{color}
+output: 
+  html_document: 
+    number_sections: yes
+---
+
+This morning we considered a contrived situation where the probabilities of a bowler knocking down
+$0, 1, \dots, 10$ pins were given by a _known_ function involving ratios of Fibonacci numbers. In
+this lab, we consider a more realistic situation where we want to _estimate_ the probabilities of a 
+professional bowler knocking down $0, 1, \dots, 10$ pins given frames of data from the $2010$ US Open 
+bowling tournament.
+
+```{r, message = FALSE}
+# reformated data originally assembled at 
+# https://www.cs.rpi.edu/academics/courses/fall14/csci1200/hw/02_bowling_classes/2010_US_Open.txt
+US_Open2010 <- readr::read_csv("US_Open2010.csv")
+str(US_Open2010)
+with(US_Open2010, table(roll_1, roll_2))
+```
+
+For simplicity, data on extra rolls awarded to a bowler in the tenth frame are omitted from this
+dataset.
+
+# Simplest Model
+
+To start with, we will consider the simplest setup where all bowlers in the $2010$ US Open
+are essentially indistiguishable and therefore pool all their frames of data together.
+
+The categorical distribution is used to model which element of a finite set is realized
+and has a simple PMF
+
+$$\Pr\left(x \mid \boldsymbol{\pi}\right) = \pi_x$$
+where $\boldsymbol{\pi}$ is a simplex vector whose size $\left(K\right)$ is equal to the number of elements in the 
+sample space for $X$, which in this case is $11$. A simplex vector is non-negative and sums to $1$, so its elements
+are probabilities. Considered as a function of $\boldsymbol{\pi}$, $\ln \pi_x$ can be used
+as a contribution to the log-likelihood in a Bayesian model, and the log-likelihood contributions from all rolls 
+under consideration need to be added together.
+
+The most common prior distribution for an unknown simplex vector is the Dirichlet distribution, which is
+a generalization of the Beta distribution to the case of more than two possibilities and has the PDF
+
+$$f\left(\boldsymbol{\pi} \mid \mathbf{a}\right) = \frac{\Gamma\left(\sum_{k = 1}^K a_k\right)}{\prod_{k = 1}^K \Gamma\left(a_k\right)} \prod_{k = 1}^K \pi_k^{a_k - 1}$$
+where $\Gamma\left(\cdot\right)$ is the gamma function, whose logarithm is denoted by `lgamma` in R and Stan,
+and $\mathbf{a}$ is a positive vector of size $K$ that governs the shape of the Dirichlet distribution. The
+expectation of the $k$-th element of a Dirichlet-distributed random variable is
+$$\forall k \ \mathbb{E} \pi_k = \frac{a_k}{\sum_{j = 1}^K a_j}.$$
+and the larger is the sum in the denominator, the smaller is the variance.
+
+## Simplest `model` Block
+
+Create a text file called simplest.stan and paste the following `data` and `parameters` blocks into it. To
+make indexing easier in Stan, this `data` block assumes that the data on two rolls of a frame of bowling are 
+indexed from $1$ (a gutter ball) to $11$ (a strike) rather than $0$ to $10$, but this choice has no bearing 
+on the posterior distribution.
+
+```{stan output.var="data_block", eval = FALSE}
+data {
+  int<lower = 0> N;                     // number of frames with data
+  int<lower = 1, upper = 11> roll_1[N]; // 1 = gutter ball, ..., 11 = strike
+  int<lower = 1, upper = 11> roll_2[N]; // same
+  vector<lower = 0>[11] a;              // hyperparameters for Dirichlet prior
+}
+parameters {
+  simplex[11] pi;                       // probability of 1 ... 11
+}
+```
+
+Below that, write a `model` block that increments the `target` keyword with the logarithm of a Dirichlet kernel 
+and a categorical log-likelihood over the first rolls of each frame (i.e. you can ignore the second roll for now).
+You could use `for` loops, which can be specified in the Stan language as in R
+```{stan output.var="for", eval = FALSE}
+for (k in 1:K) {
+  // do stuff, often indexing by k
+}
+```
+
+## Running the Simplest Stan Program
+
+Draw from the posterior distribution implied by simplest.stan . Remember that when you
+pass the named list (or dict in Python) of data, add $1$ to both `roll_1` and `roll_2` so that they
+correspond to categories rather than pins knocked down. In addition, you  will have to specify a vector
+of $11$ positive numbers for `a` that imply a reasonable prior expectation of $\boldsymbol{\pi}$
+among professional bowlers. Then, look at the resulting posterior summary.
+
+## Simplest `generated quantities` Block
+
+Below your `model` block, add a `generated quantities` block that evaluates the "posterior predictive
+log probabilities" for the second roll in each frame of bowling, given the first roll in that frame. In a 
+sense, the first roll is being treated as training data and the second roll is being treated as testing
+data here. The steps involved are:
+
+1. Declare a vector of size `N` to hold these predictive log probabilities
+2. Execute a loop from `1` to `N` where you
+    * Calculate the number of pins still upright for the second roll
+    * Subset the `pi` parameter vector so that its size is equal to the number of pins still upright,
+      using either the `head` function or R-style indexing of a numeric vector by a sequance of integer 
+      indices
+    * Unless there was a gutter ball on the first roll, this subsetted vector cannot be interpreted
+      as a set of conditional probabilities because it no longer adds up to $1$. Thus, renormalize it
+      by dividing by its sum so that it can be interpreted as a set of conditional probabilities.
+    * Evaluate the logarithm of the conditional probability of the second roll and stick it into
+      the appropriate element of the vector you declared in step (1)
+
+# Intermediate Model
+
+Now we are going to extend the simplest model to consider all of the data and obtain posterior 
+predictions for the score of a professional bowler over an entire game of ten frames.
+
+## Intermediate `model` Block
+
+Create a text file called intermediate.stan and paste the above `data` and `parameters` blocks into it. Below that,
+write a `model` block that increments the `target` keyword with the logarithm of a Dirichlet kernel and 
+a categorical log-likelihood over the first rolls of each frame and the second rolls of each frame (unless there
+was a strike on the first roll, in which case the second roll does not happen). The log-likelihood contribution
+of the second roll is very similar to the calculation in the `generated quantities` block of the previous
+problem, although here we are conditioning on all the available data rather than separating off the second roll
+as testing data.
+
+## Intermediate `functions` and `generated quantities` Block
+
+We can also draw from the posterior predictive distribution for a professional bowler's score for an
+entire game of bowling, which consists of ten frames. The usual rules for scoring in bowling are given at
+
+https://en.wikipedia.org/wiki/Ten-pin_bowling#Traditional_scoring
+
+The main complication in the scoring rules is that if a bowler obtains a spare or a strike in this frame,
+then bonus points are awarded depending on the result of _future_ rolls, so you have to keep track of
+what happened in the previous frame as you simulate the game. Also, if a bowler obtains a spare or a strike 
+in the tenth frame, an additional roll or two are awarded to accumulate bonus points.
+
+To draw from a posterior predictive distribution, you draw from the distribution used for the likelihood
+conditional on a posterior draw of the parameters. For example, to draw from the posterior predictive
+distribution for the number of pins knocked down on the first roll of a frame of bowling, you could do
+
+```{stan output.var="x_1", eval = FALSE}
+  int x_1 = categorical_rng(pi) - 1;
+```
+so that `x_1` is a realization between $0$ and $10$ (which would be a strike).
+
+Edit intermediate.stan to add a `functions` block with a function called `game_rng` that takes a
+vector of probabilities that each number of pins gets knocked down on a roll and returns the bowler's
+score for an entire simulated game. An outline of this function would look like
+
+```{stan output.var="scoring", eval = FALSE}
+functions {
+  int game_rng(vector pi) {
+    int strike_previous = 0;  // 0 / 1 flag for strike on previous frame
+    int spare_previous = 0;   // 0 / 1 flag for spare on previous frame
+    int score = 0;            // increment this to score a simulated game
+    for (frame in 1:10) {
+      // write code to simulate bowling and keep incrementing the bowler's score
+    }
+    // possible extra rolls in the tenth frame
+    if (strike_previous) {
+      // write code to score two additional rolls starting with 10 pins upright
+    } else if (spare_previous) {
+      // write code to score one additional roll with 10 pins upright
+    }
+    return score;
+  }
+}
+```
+
+Inside the loop over frames from $1$ to $10$, the basic implementation steps are:
+
+1. Simulate the first roll of the current frame. If there was a strike or spare on the _previous_ 
+  frame, increment `score` with bonus points in addition to regular points.
+2. If the first roll of the current frame was not a strike, simulate the second roll of the current frame. 
+  If there was a strike on the _previous_ frame, increment `score` with bonus points in addition to regular 
+  points.
+3. Set `strike_previous` and `spare_previous` to $1$ or $0$ as appropriate depending on the result
+  of the _current_ frame before moving onto the next frame.
+  
+When you break out of the loop over frames from $1$ to $10$, it is possible that the bowler would
+have gotten a strike or a spare on the tenth frame, in which case you would need to handle the
+results of additional roll(s) that are awarded.
+
+Remember that inside a `for` loop, `if` clause, `else` clause, etc., you can declare new local
+variables to keep your code organized and easy to read. However, these local variables have to
+be declared right after the opening `{`. Thus, sometimes you have to declare a symbol but not
+define it farther down in your code. In particular, when simulating the second roll of a frame
+of bowling, you will need to do something like
+
+```{stan output.var="x_2", eval = FALSE}
+if (x_1 < 10) { // not a strike
+  int x_2; // declared now but defined later
+  // more code to set up the conditional probabilities
+  x_2 = categorical_rng(conditional_probabilies);
+  score += x_1 + x_2;
+}
+```
+
+Finally, your `generated quantities` block should call the `game_rng` function that you 
+defined in the `functions` block in order to store the posterior predictive distribution in
+the output like
+
+```{stan output.var="score", eval = FALSE}
+generated quantities {
+  int score = game_rng(pi);
+}
+```
+
+## Running the Intermediate Stan Program
+
+Draw from the posterior distribution implied by intermediate.stan . How would you describe the 
+resulting posterior predictive distribution of a professional bowler's score for a game of bowling?
+
+# Multilevel Stan Program
+
+To the extent that there is anything interesting about modeling bowling, it would be necessary
+to allow bowlers to have different skill levels, as reflected in higher probabilities of knocking
+down more of the available pins. 
+
+In a multilevel model, each of the $J$ bowlers has a unique simplex of probabilities with (usually)
+a Dirichlet prior that has the PDF
+
+$$f\left(\boldsymbol{\pi}_j \mid \boldsymbol{\mu}, \gamma\right) = 
+\frac{\Gamma\left(\gamma\right)}{\prod_{k = 1}^K \Gamma\left(\gamma \mu_k\right)} 
+\prod_{k = 1}^K \pi_{j,k}^{\gamma \mu_k - 1}$$
+
+where $\gamma \boldsymbol{\mu}$ is a vector of _unknown_ but positive shape parameters. $\gamma$
+controls how much the distribution of $\boldsymbol{\pi}_j$ concentrates around 
+$\boldsymbol{\mu} = \mathbb{E}\boldsymbol{\pi}_j$. A plausible prior distribution for $\gamma > 0$ 
+is the exponential distribution, which has the PDF
+
+$$f\left(\gamma \mid r\right) = r e^{-r \gamma},$$
+where $r > 0$ is a rate hyperparameter, such that $\mathbb{E}\gamma = \frac{1}{r}$. Thus, larger
+values of $r$ imply more heterogeneity in skill across professional bowlers under the prior. Since 
+the unkown $\boldsymbol{\mu}$ is also a simplex of size $11$ that represents the probabilities of the
+average professional bowler (in the $2010$ US Open bowling tournament) knocking down $0, 1, \dots, 10$
+pins, you can use the same Dirichlet prior as in the simplest and intermediate Stan programs:
+
+$$f\left(\boldsymbol{\mu} \mid \mathbf{a}\right) = \frac{\Gamma\left(\sum_{k = 1}^K a_k\right)}{\prod_{k = 1}^K \Gamma\left(a_k\right)} \prod_{k = 1}^K \mu_k^{a_k - 1}.$$
+The contribution to the log-likelihood of the $j$-th bowler only involves $\boldsymbol{\pi}_j$, as
+opposed to any other bowler's skill. Thus, we need to reformat the data to correspond to the restructured 
+`data` block of the Stan program below. For simplicity, we only consider data on the first round of the $2010$ 
+US Open bowling tournament:
+```{r}
+# drop subsequent rounds
+US_Open2010 <- US_Open2010[!duplicated(paste0(US_Open2010$Bowler, "_", US_Open2010$Frame)), ]
+J <- length(unique(US_Open2010$Bowler)) # number of bowlers
+roll_1 <- t(matrix(US_Open2010$roll_1 + 1, nrow = 10, ncol = J))
+roll_2 <- t(matrix(US_Open2010$roll_2 + 1, nrow = 10, ncol = J))
+```
+
+Create a text file called multilevel.stan and paste the following into it.
+```{stan output.var="multilevel", eval = FALSE}
+functions {
+  // copy your game_rng function here
+}
+data {
+  int<lower = 0> J;                         // number of bowlers
+  int<lower = 1, upper = 11> roll_1[J, 10]; // 1 = gutter ball, ..., 11 = strike
+  int<lower = 1, upper = 11> roll_2[J, 10]; // same
+  vector<lower = 0>[11] a; // hyperparameters for Dirichlet prior on mu
+  real<lower = 0> rate;    // hyperparameter for exponential prior on gamma
+}
+parameters {
+  simplex[11] pi[J];       // probability of 1 ... 11 for each bowler
+  simplex[11] mu;          // expectation of pi_j across professional bowlers
+  real<lower = 0> gamma;   // concentration of professional bowlers around mu
+}
+model {
+  // write this code to accumulate the log-kernel in target
+}
+generated quantities {
+  int score[J];
+  int winner;
+  for (j in 1:J) score[j] = game_rng(pi[j]);
+  winner = sort_indices_desc(score)[1]; // index of bowler with highest score
+}
+```
+In the `generated quantities` block, in addition to simulating the score for
+each of the $J$ bowlers, we also compute who has the maximum simulated score.
+But first, you need to fill in the model block so that it accumulates the
+log-kernel of the posterior distribution in the `target` keyword.
+
+## Running the Multilevel Stan Program
+
+Draw from the posterior distribution implied by multilevel.stan . `J`, `roll_1`, and `roll_2` 
+can be passed as part of the named list (in R) or dict (in Python), but be sure to also specify $r$.
+You can pull out the posterior draws on `winner` or any other quantity in R
+by doing
+```{r, eval = FALSE}
+winner <- rstan::extract(multilevel)[[1]]
+```
+which is a vector of size $4000$ of the bowler with the highest score. Based on
+```{r, eval = FALSE}
+prop.table(table(winner))
+```
+who has the highest probability of winning the bowling tournament?

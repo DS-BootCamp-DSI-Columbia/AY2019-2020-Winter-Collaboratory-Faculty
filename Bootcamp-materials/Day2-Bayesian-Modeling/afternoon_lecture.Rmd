@@ -1,0 +1,248 @@
+---
+title: "Introduction to the Stan Language"
+author: "Ben Goodrich"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+autosize: true
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{amssymb}
+   - \usepackage{color}
+output:
+  ioslides_presentation:
+    widescreen: yes
+editor_options: 
+  chunk_output_type: console
+---
+<style type="text/css">
+slides > slide:not(.nobackground):after {
+  content: '';
+}
+.forceBreak { -webkit-column-break-after: always; break-after: column; }
+</style>
+
+```{r setup, include=FALSE}
+options(width = 90)
+library(knitr)
+knit_hooks$set(small.mar = function(before, options, envir) {
+    if (before) par(mar = c(4, 4, .1, .1), las = 1)  # smaller margin on top and right
+})
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+library(rstan)
+options(mc.cores = 4L)
+rstan_options(auto_write = TRUE)
+```
+
+## 2014 Ebola Crisis
+
+* In 2014 there was an(other) outbreak of Ebola in Africa
+* $n = 7$ western medical professionals were infected and given an experimental drug called ZMapp.
+  Goal is to decide whether ZMapp is effective using Stan.
+* The binomial distribution is standard for evaluating the probability of $y$ successes in $n$
+  independent trials with common success probability $\pi$
+  $$\Pr\left(y \mid \pi, n\right) = {n \choose y} \pi^y \left(1 - \pi\right)^{n - y}$$
+* For OBSERVED $y$ (and $n$), we can write a log-likelihood function of $\pi$ as
+  $$\ell\left(\pi\right) = y \ln \pi + \left(n - y\right) \ln \left(1 - \pi\right)$$
+
+## Posterior Distribution in Explicit Form
+
+* A Beta distribution is often used as a prior for probabilities, which has the PDF
+  $$f\left(\pi \mid a, b\right) = B\left(a,b\right)^{-1} \pi^{a - 1} \left(1 - \pi\right)^{b - 1}$$
+  where $B\left(a,b\right) = \int_0^1 x^{a - 1} \left(1 - x\right)^{b - 1} dx$ is the Beta function
+* Bayes Rule for a continuous $\pi$ can be written as a PDF
+  $$\begin{eqnarray}
+  f\left(\pi \mid y, n, a, b\right) & = & \frac{f\left(\pi \mid a, b\right) \mathrm{Pr}\left(y \mid \pi, n\right)}
+  {\mathrm{Pr}\left(y \mid n, a, b\right)} \\
+  & = & \frac{B\left(a,b\right)^{-1}
+  \pi^{a - 1} \left(1 - \pi\right)^{b - 1} {n \choose y} \pi^y \left(1 - \pi\right)^{n - y}}
+  {\mathrm{Pr}\left(y \mid n, a, b\right)} \\
+  & \propto & \pi^{a^\ast - 1} \left(1 - \pi\right)^{b^\ast - 1}
+  \end{eqnarray}$$
+  where $a^\ast = a + y$ and $b^\ast = b + n - y$
+  
+## Workflow for Stan
+
+- You write the program in a (text) .stan file with a C-like syntax
+- Stan's parser, `stanc`, does three things:
+    - checks that program is syntactically valid and tells you if not
+    - writes a conceptually equivalent C++ source file to disk
+    - C++ compiler creates a binary file from the C++ source
+- When you have some C++ like `x = mu + sigma * z;`
+    - C++ can automatically store $\frac{\partial x}{\partial\mu}$, $\frac{\partial x}{\partial\sigma}$,
+    and $\frac{\partial x}{\partial z}$ by overloading arithmetic operators and handle the chain-rule for you
+    - Called automatic differentiation (not numerical differentiation)
+    - Unless $\mu$, $\sigma$, or $z$ is constant, in which case it does not bother
+- You execute the binary from an interface
+- You analyze the resulting samples from the posterior
+
+## Primitive Object Types in Stan
+
+- In Stan / C++, variables must declared with types
+- In Stan / C++, statements are terminated with semi-colons
+- Primitive scalar types: `real x;` or `int K;`
+    - Unknowns cannot be `int` because no derivatives and hence no HMC
+    - Can condition on integer data because no derivatives are needed
+- Implicitly real `vector[K] z;` or `row_vector[K] z;`
+- Implicitly real `matrix[N,K] X;` can have 1 column / row
+- Arrays are just holders of any other homogenous objects
+    - `real x[N]` is similar to `vector[N] x;` but lacks linear algebra functions
+    - `vector[N] X[K];` and `row_vector[K] X[N]` are similar to
+      `matrix[N,K] X;` but lack linear algebra functionality, although
+      they have uses in loops
+- Vectors and matrices cannot store integers,
+  so instead use possibly multidimensional integer arrays `int y[N];` or `int Y[N,P];`
+
+## The `lookup` Function in **rstan**
+
+- Can input the name of an R function, in which case it will try
+to find an analagous Stan function
+- Can input a regular expression, in which case it will find matching
+Stan functions that match
+```{r, size='footnotesize',comment="#", message = FALSE}
+rstan::lookup("^inv.*[^gf]$") # functions starting with inv but not ending with g or f
+```
+
+## Optional `functions` Block of Stan Programs
+
+- Stan permits users to define and use their own functions
+- If used, must be defined in a leading `functions` block
+- Can only validate constraints inside user-defined functions
+- Very useful for several reasons:
+    - Easier to reuse across different .stan programs
+    - Makes subsequent chunks of code more readable
+    - Enables posteriors with Ordinary Differential Equations, algebraic
+      equations, and integrals
+    - Can be exported to R via `expose_stan_functions()`
+- All functions, whether user-defined or build-in, must be called by
+argument position rather than by argument name, and there are no default
+arguments
+- User-defined functions cannot have the same name as existing functions
+or keywords and are case-sensitive
+
+## Illustration of `functions` Block
+
+```{r, echo = FALSE, comment = ""}
+writeLines(readLines("hello.stan")[1:19])
+```
+
+## Constrained Object Declarations in Stan
+
+Outside of the `functions` block, any primitive object can have bounds:
+
+- `int<lower = 1> K;` `real<lower = -1, upper = 1> rho;`
+- `vector<lower = 0>[K] alpha;` and similarly for a `matrix`
+- A `vector` (but not a `row_vector`) can be further specialized:
+    - `unit_vector[K] x;` implies $\sum_{k=1}^{K}x_{k}^{2}=1$
+    - `simplex[K] x;` implies $x_{k}\geq0\,\forall k$ and $\sum_{k=1}^{K}x_{k}=1$
+    - `ordered[K] x;` implies $x_{j}<x_{k}\,\forall j<k$
+    - `positive_ordered[K] x;` implies $0<x_{j}<x_{k}\,\forall j<k$
+- A `matrix` can be specialized to enforce constraints:
+    - `cov_matrix[K] Sigma;` or better `cholesky_factor_cov[K, K] L;`
+    - `corr_matrix[K] Lambda;` or `cholesky_factor_corr[K] C;`
+
+## `data` and `transformed data` Blocks{.columns-2}
+### "Required" `data` Block
+
+- Contains all knowns passed to Stan as a NAMED list in R or as a dict in Python, such as
+  outcomes $\left(\mathbf{y}\right)$, covariates $\left(\mathbf{X}\right)$,
+  constants $\left(K\right)$, and / or hyperparameters $\left(a\right)$
+- Basically, everything posterior distribution conditions on
+- Can have comments in C++ style (`//` or `/* ... */`)
+- Whitespace is essentially irrelevant, except after keywords
+- Symbols are evaluated sequentially
+
+<p class="forceBreak"></p>
+
+### Optional `transformed data` Block
+
+- Is executed only once before the iterations start
+- Used to calculate needed functions of data
+- Not necessary if calling Stan from R or Python with everything in `data`
+- Can use it to check that data was passed correctly from R
+- Need to declare objects before they can be assigned (=) but can be on the same line
+- All declarations must come directly after the opening `{`
+
+## Illustration of `data` and `transformed data` Blocks
+
+```{r, echo = FALSE, comment = ""}
+writeLines(readLines("hello.stan")[21:38])
+```
+
+## `parameters` and `transformed parametes` Blocks{.columns-2}
+### "Required" `parameters` Block
+
+- Declare exogenous unknowns for desired posterior distribution
+- Cannot declare any integer parameters, only reals and containers thereof
+- Must specify the parameter space but lower and upper
+bounds are implicitly $\pm\infty$ if unspecified
+- The change-of-variables adjustment due to the transformation from
+an unconstrained parameter space to the (in this case, positive) constrained space
+is handled automatically and added to `target`
+
+<p class="forceBreak"></p>
+
+### Optional `transformed parameters`
+
+- Similar in structure to the `transformed data` block but is executed every leapfrog step
+- All declarations must come directly after the opening `{`
+- Calculate endogenous unknowns that are deterministic functions of things declared in earlier blocks
+- Used to create interesting intermediate inputs to the log-kernel
+- Declared constraints are validated and samples are stored
+- Often used in multilevel models to define group-specific unknowns
+
+## "Required" `model` Block
+
+- Can declare endogenous unknowns, assign to them, and use them
+- All declarations must come directly after the opening `{`
+- Constraints cannot be declared / validated and samples not stored
+- The `model` block must define (something proportional to) $\text{target}=\log\left(f\left(\boldsymbol{\theta}\right)\times f\left(\left.\mathbf{y}\right|\boldsymbol{\theta},\cdot\right)\right)=\log f\left(\boldsymbol{\theta}\right)+\log f\left(\left.\mathbf{y}\right|\boldsymbol{\theta},\cdot\right)$
+- There is an internal reserved symbol called `target` that is
+initialized to zero (before change-of-variable adjustments) you increment by `target += ...;`
+- Functions ending `_lpdf` or `_lpmf` return scalars even if some of their arguments are vectors or 
+  one-dimensional arrays, in which case it sums the log density/mass over the presumed conditionally
+  independent elements
+
+## Optional `generated quantities` Block
+
+- Can declare more endogenous knowns, assign to them, and use them
+- Samples are stored in the output
+- Can reference anything except stuff in the `model` block
+- Can also do this in R or Python afterward, but primarily used for
+    - Interesting functions of posterior that do not involve likelihood
+    - Posterior predictive distributions and / or functions thereof
+    - The log-likelihood for each observation to pass to `loo`
+
+## Illustration of Remaining Blocks
+
+```{r, echo = FALSE, comment = ""}
+writeLines(readLines("hello.stan")[-(1:38)])
+```
+
+## Calling `stan` in `library(rstan)`
+
+```{r, hello, cache = TRUE, results = "hide", message = FALSE}
+hello <- stan("hello.stan", data = list(n = 7, y = 5, a = 4, b = 2), cores = 4)
+```
+```{r}
+dim(hello) # 1000 draws on each of 4 chains for 4 quantities
+print(hello, digits = 2) # lp__ is just target from the Stan program
+```
+

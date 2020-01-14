@@ -36,12 +36,14 @@ knit_hooks$set(small.mar = function(before, options, envir) {
   has any equity stake in, a title (such as officer or director) with, or is expected to earn at least 
   $\$5,000.00$ per year from a private company is required to disclose these facts in presentations
 
-## Main Points
+## Links
 
 * Neither Bayesian analysis nor Stan can be learned in one day
-* If you need to find a research assistant with experience in Stan or a collaborator for a grant
-  application involving Stan, contact me (benjamin.goodrich@columbia.edu), Andrew Gelman
-  (gelman@stat.columbia.edu), or one of the other Stan developers at Columbia
+* If you need to locate a research assistant with experience in Stan or a collaborator for a grant
+  application involving Stan, contact 
+    * Me (benjamin.goodrich@columbia.edu)
+    * Andrew Gelman (gelman@stat.columbia.edu) 
+    * One of the other many Stan developers at Columbia
 * If you have questions about specifying or analyzing a Stan program, post at
   http://discourse.mc-stan.org/ and there are many people who can help you
 * You may want to sit in or enroll in my Spring semester class on Bayesian analysis with Stan
