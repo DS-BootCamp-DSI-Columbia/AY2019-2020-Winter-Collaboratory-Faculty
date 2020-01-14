@@ -13,17 +13,16 @@
 
 ### Content
 
-- [0 - Introduction to ML](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/00-introduction.html)
-- [1 - Supervised Learning](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/01-supervised-learning.html)
-- [2 - Unsupervised Learning](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/02-unsupervised-learning.html)
-- [3 - Cross-validation and Grid-Search](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/03-cross-validation-grid-search.html)
-- [4 - Preprocessing](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/04-preprocessing.html)
-- [5 - Linear Models for Regression](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/05-linear-models-regression.html)
-- [6 - Linear Models for Classification](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/06-linear-models-classification.html)
-- [7 - Trees and Forests](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/07-trees-forests.html)
-- [8 - Gradient Boosted Trees](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/08-gradient-boosting.html)
-- [9 - Pipelines](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/09-pipelines.html)
-- [10 - Model Evaluation](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/10-model-evaluation.html)
+- [1 - Introduction to ML](https://ds-bootcamp-dsi-columbia.github.io/AY2019-2020-Winter-Collaboratory-Faculty/Bootcamp-materials/Day1-Machine-Learning/slides/01-introduction.html)
+- [2 - Supervised Learning](https://ds-bootcamp-dsi-columbia.github.io/AY2019-2020-Winter-Collaboratory-Faculty/Bootcamp-materials/Day1-Machine-Learning/slides/02-supervised-learning.html)
+- [3 - Preprocessing](https://ds-bootcamp-dsi-columbia.github.io/AY2019-2020-Winter-Collaboratory-Faculty/Bootcamp-materials/Day1-Machine-Learning/slides/03-preprocessing.html)
+- [4 - Cross-validation and Grid-Search](https://ds-bootcamp-dsi-columbia.github.io/AY2019-2020-Winter-Collaboratory-Faculty/Bootcamp-materials/Day1-Machine-Learning/slides/04-cross-validation-grid-search.html)
+- [5 - Linear Models for Regression](https://ds-bootcamp-dsi-columbia.github.io/AY2019-2020-Winter-Collaboratory-Faculty/Bootcamp-materials/Day1-Machine-Learning/slides/05-linear-models-regression.html)
+- [6 - Linear Models for Classification](https://ds-bootcamp-dsi-columbia.github.io/AY2019-2020-Winter-Collaboratory-Faculty/Bootcamp-materials/Day1-Machine-Learning/slides/06-linear-models-classification.html)
+- [7 - Trees and Forests](https://ds-bootcamp-dsi-columbia.github.io/AY2019-2020-Winter-Collaboratory-Faculty/Bootcamp-materials/Day1-Machine-Learning/slides/07-trees-forests.html)
+- [8 - Gradient Boosted Trees](https://ds-bootcamp-dsi-columbia.github.io/AY2019-2020-Winter-Collaboratory-Faculty/Bootcamp-materials/Day1-Machine-Learning/slides/08-gradient-boosting.html)
+- [9 - Pipelines](https://ds-bootcamp-dsi-columbia.github.io/AY2019-2020-Winter-Collaboratory-Faculty/Bootcamp-materials/Day1-Machine-Learning/slides/09-pipelines.html)
+- [10 - Model Evaluation](https://ds-bootcamp-dsi-columbia.github.io/AY2019-2020-Winter-Collaboratory-Faculty/Bootcamp-materials/Day1-Machine-Learning/slides/10-model-evaluation.html)
 
 
 ### Prerequisites
