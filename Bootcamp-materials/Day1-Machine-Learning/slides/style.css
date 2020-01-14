@@ -40,18 +40,32 @@
           width: 100%;
       }
       .remark-slide-container .compact p, .remark-slide-container .compact li, .remark-slide-container .compact pre{
-        font-size: 30px;
         line-height: 1.1;
-        display: block;
-        margin: 10px 0;
+margin: 0px 0;
+}
+.remark-slide-container .compact .MathJax_Display{
+    line-height: 1.1;
+    margin: 1px 0;
+    }
+.remark-slide-container .compact h1{
+margin-bottom: 3px;
     }
       .padding-top {
           padding-top: 100px;
       }
-      .remark-slide-content .smaller p, .remark-slide-content .smaller li,
-      .remark-slide-content .smaller .remark-code,  .smaller .remark-code-line,.remark-slide-content .smaller a{
+.remark-slide-content .smaller p, .remark-slide-content .smaller p .MathJax, .remark-slide-content .smaller li,
+.remark-slide-content .smaller .remark-code,  .smaller .remark-code-line,.remark-slide-content .smaller a,
+ .remark-slide-content .smaller .dataframe{
           font-size: 25px;
       }
+.remark-slide-content .smallest p, .remark-slide-content .smallest .MathJax, .remark-slide-content .smallest li, .remark-slide-content .smallest .remark-code,
+.smallest .remark-code-line, .remark-slide-content .smallest .dataframe, .remark-slide-content  span.smallest{
+font-size: 20px;
+}
+.remark-slide-content .tiny p, .remark-slide-content .tiny li, .remark-slide-content .tiny .remark-code,
+.tiny .remark-code-line, .remark-slide-content .tiny .dataframe{
+font-size: 16px;
+}
       .normal {
           font-size: 30px;
       }
@@ -77,6 +91,9 @@
       .left-column{
           float: left;
       }
+.clear-column{
+    clear: both;
+}
       .narrow-right-column {
           float: right;
           width: 32%
@@ -85,6 +102,14 @@
           float: left;
           width: 65%
       }
+.narrow-left-column {
+    float: left;
+    width: 32%
+}
+.wide-right-column {
+    float: right;
+    width: 65%
+}
       .invisible {
           visibility: hidden
       }
@@ -92,3 +117,37 @@
         font-size: 15px;
       }
       .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+.hljs.remark-code {background: #e0e0e0}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+table.dataframe {
+border: none;
+border-collapse: collapse;
+border-spacing: 0;
+color: black;
+table-layout: fixed;
+}
+table.dataframe thead {
+border-bottom: 1px solid black;
+vertical-align: bottom;
+}
+table.dataframe tr,
+table.dataframe th,
+table.dataframe td {
+text-align: right;
+vertical-align: middle;
+padding: 0.5em 0.5em;
+line-height: normal;
+white-space: normal;
+max-width: none;
+border: none;
+}
+table.dataframe th {
+font-weight: bold;
+}
+table.dataframe tbody tr:nth-child(odd) {
+background: #f5f5f5;
+}
+table.dataframe tbody tr:hover {
+background: rgba(66, 165, 245, 0.2);
+}
