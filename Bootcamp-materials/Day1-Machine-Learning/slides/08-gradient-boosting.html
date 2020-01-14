@@ -141,7 +141,7 @@ Learning rate $\gamma, i.e. 0.1$
 FIXME plot for regression models 
 Come back to this
 ---
-#GradientBoostingRegressor
+#HistGradientBoostingRegressor
 
 .center[
 ![:scale 50%](images/grad_boost_regression_steps.png)
@@ -227,7 +227,7 @@ use a simple model. So if I use a tree of depth one, there
 will be a very large residual.
 
 ---
-#GradientBoostingClassifier
+#HistGradientBoostingClassifier
 
 .center[
 ![:scale 70%](images/grad_boost_depth2.png)
@@ -260,14 +260,12 @@ For multi-class, the default thing to do is One Versus Rest.
 class:spacious
 # Gradient Boosting Advantages
 
-- Slower to train than RF (if using "old" GradientBoostingRegressor), but much faster to predict
-- Very fast using XGBoost, LightGBM, pygbm, new scikit-learn implementation HistGradientBoosting
+- Much faster to predict than random forests
+- Very fast using XGBoost, LightGBM, new scikit-learn implementation HistGradientBoosting (old GradientBoostingClassifier was slow)
 - Small model size
 - Typically more accurate than Random Forests
 ???
-It's sort of slower to train if you're training serial, but
-if you paralyze it, it's often faster to train since it has
-a much smaller model size. So the trees are usually not as
+ So the trees are usually not as
 deep and you don't need as many because you're doing much
 more focused learning where you try to correct the mistakes
 of the other models. So usually it’s very fast to predict
@@ -308,73 +306,6 @@ something. But typically, the depth is much, much smaller
 than for random forests. This means the model will be small
 in memory, and also will be faster to predict since you have
 less deep trees to traverse.
-
----
-
-# XGBoost
-`conda install -c conda-forge xgboost`
-
-```python
-from xgboost import XGBClassifier
-xgb = XGBClassifier()
-xgb.fit(X_train, y_train)
-xgb.score(X_test, y_test))
-```
-
-- supports missing values
-- supports multi-core
-
-???
-In terms of implementation, there's a couple of
-implementation methods. Scikit-learn has gradient boosting
-classifier and gradient boosting regressor. Unfortunately,
-they are rather slow.
-
-So one of the most commonly used packages is XGBoost, which
-you can install from conda forge for example. It's
-completely scikit-learn compatible. So you can import
-XGBClassifier if you want you can use it with grid search or
-with pipelines.
-
-The cool thing is its fast. It supports missing values so
-you don't need to do an imputation strategy, you can put
-them directly into XGBoost. And it also supports multi-core.
-
-The gradient boosting in scikit-learn is just sequential on
-a single core which on most of the machines are not great.
-If you have a big machine you want to use all the cores in
-parallel. You can’t do that with scikit-learn but you can do
-it with XGBoost.
-
-For random forest, on the other hand, scikit-learn can also
-run random forest in parallel, because it's much easier.
-XGBoost also has a random forest. XGBoost also has some
-enhancements to the algorithm. It has L1 and L2 penalties
-for the leaves, so you can do something like an elastic net
-or lasso penalty to the leaves. I think by default, it's
-disabled. But they are not really training like the vanilla
-decision trees.
-
-One of the reasons they're faster is because they have a
-faster implementation. But you can make even faster if you
-use approximate splits in the trees.
-
-If you want to find a split, you need to search over all
-features and you need to search over all possible thresholds
-on the feature. Searching over all possible thresholds on
-the feature means soaring feature, which is an analog
-operation. Instead, what you can do is you can bin the
-features, and then its linear time operation but the
-threshold will be approximate.
-
-And that will make your computation much faster.
-- Efficient implementation of gradient boosting (5x sklearn)
-- Improvements on original algorithm
-- https://arxiv.org/abs/1603.02754
-- Adds l1 and l2 penalty on leaf-weights
-- Fast approximate split finding
-- Scikit-learn compatible interface
-
 ---
 # HistGradientBoostingClassifier
 
