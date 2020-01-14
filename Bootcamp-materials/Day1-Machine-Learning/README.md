@@ -24,7 +24,6 @@
 - [8 - Gradient Boosted Trees](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/08-gradient-boosting.html)
 - [9 - Pipelines](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/09-pipelines.html)
 - [10 - Model Evaluation](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/10-model-evaluation.html)
-- [11 - Imbalanced Data](https://ds-bootcamp-dsi-columbia.github.io/AY2018-2019-Winter-Collaboratory-Faculty/Bootcamp-materials/Day3-Machine-Learning/slides/11-imbalanced-data.html)
 
 
 ### Prerequisites
@@ -47,7 +46,6 @@ This tutorial will require recent installations of
 - [scikit-learn](http://scikit-learn.org/stable/) (>=0.22.1)
 - [IPython](http://ipython.readthedocs.org/en/stable/)
 - [Jupyter Notebook](http://jupyter.org)
-- imbalance-learn
 
 You should be able to type:
 
