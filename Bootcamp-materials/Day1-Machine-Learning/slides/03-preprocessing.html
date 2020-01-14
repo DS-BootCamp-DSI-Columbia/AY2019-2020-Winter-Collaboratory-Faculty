@@ -965,7 +965,7 @@ class: spacious
 ---
 
 .center[
-![:scale 80%](images/missing_values_img_1.png)
+![:scale 80%](images/row_nan_col_nan.png)
 ]
 
 ???
@@ -976,7 +976,7 @@ class: spacious
 ---
 
 .center[
-![:scale 100%](images/missing_values_img_2.png)
+![:scale 100%](images/imputation-schema.png)
 ]
 
 ???
@@ -995,10 +995,10 @@ class: spacious
 
 ---
 
-# Mean and Median
+# Mean and Median Imputation
 
 .center[
-![:scale 100%](images/missing_values_img_4.png)
+![:scale 100%](images/imputation-median-schema.png)
 ]
 
 ???
@@ -1006,7 +1006,7 @@ class: spacious
 ---
 
 .center[
-![:scale 100%](images/missing_values_img_5.png)
+![:scale 90%](images/median_imputation.png)
 ]
 
 ???
@@ -1015,26 +1015,15 @@ class: spacious
 ---
 
 
-class: spacious
+class: compact
 
 # KNN Imputation
-
 - Find k nearest neighbors that have non-missing values.
 - Fill in all missing values using the average of the
 neighbors.
-- PR in scikit-learn: https://github.com/scikit-learn/scikit-learn/pull/9212
-
-???
-
----
-
 .center[
-![:scale 70%](images/missing_values_img_9.png)
+![:scale 65%](images/knn_imputation.png)
 ]
----
-class: center, middle
-
-# Notebook: Preprocessing
 
     </textarea>
     <script src="remark-latest.min.js"></script>
