@@ -26,13 +26,14 @@ Andreas C. Müller
 
 Columbia University, scikit-learn
 
-.smaller[https://github.com/amueller/ml-training-advanced]
+.smaller[https://github.com/DS-BootCamp-DSI-Columbia/AY2019-2020-Winter-Collaboratory-Faculty]
 
 ---
 
 class: center, middle
 
 # A note on preprocessing
+# (and pipelines)
 
 ???
 
@@ -41,48 +42,7 @@ cross-validation here, and introduce pipelines.
 
 ---
 
-class: some-space
 
-#Leaking Information
-
-.left-column[
-Information Leak
-![:scale 100%](images/pipelines_img_9.png)
-]
-.right-column[
-No Information leakage
-![:scale 100%](images/pipelines_img_10.png)]
-
-.reset-column[
-Need to include preprocessing in cross-validation !
-]
-
-???
-
-What we did was we trained the scaler on the training data,
-and then applied cross-validation to the scaled data. Tha’s
-what’s show on the left. The problem is that we use the
-information of all of the training data for scaling, so in
-particular the information in the test fold. This is also known
-as information leakage. If we apply our model to new data,
-this data will not have been used to do the scaling, so our
-cross-validation will give us a biased result that might be
-too optimistic.
-
-On the right you can see how we should do it: we should only
-use the training part of the data to find the mean and
-standard deviation, even in cross-validation. That means
-that for each split in the cross-validation, we need to scale
-the data a bit differently. This basically means the scaling
-should happen inside the cross-validation loop, not outside.
-
-In practice, estimating mean and standard deviation is quite
-robust and you will not see a big difference between the
-two methods. But for other preprocessing steps that we’ll
-see later, this might make a huge difference. So we should
-get it right from the start.
-
----
 class: smaller
 
 ```python
@@ -114,12 +74,14 @@ pipe.score(X_test, y_test)
 
 ???
 
-Now I want to show you how to do preprocessing and crossvalidation right with scikit-learn.
+Now I want to show you how to do preprocessing and
+crossvalidation right with scikit-learn.
 
-At the top here you see the workflow for scaling the data and
-then applying ridge again. Fit the scaler on the training set,
-transform on the training set, fit ridge on the training set,
-transform the test set, and evaluate the model.
+At the top here you see the workflow for scaling the data
+and then applying ridge again. Fit the scaler on the
+training set, transform on the training set, fit ridge on
+the training set, transform the test set, and evaluate the
+model.
 
 Because this is such a common pattern, scikit-learn has a
 tool to make this easier, the pipeline. The pipeline is an
@@ -128,8 +90,8 @@ of the data before you apply a final model.
 
 You can build a pipeline using the make_pipeline function.
 Just provide as parameters all the estimators. All but the
-last one need to have a transform method. Here we only
-have two steps: the standard scaler and ridge.
+last one need to have a transform method. Here we only have
+two steps: the standard scaler and ridge.
 
 make_pipeline returns an estimator that does both steps at
 once. We can call fit on it to fit first the scaler and then
@@ -144,28 +106,28 @@ shorter.
 class: left, middle
 
 .center[
-![:scale 70%](images/pipelines_img_13.png)
+![:scale 70%](images/pipeline.png)
 ]
 
 ???
 
 Let’s dive a bit more into the pipeline. Here is an
-illustration of what happens with three steps, T1, T2
-and Classifier. Imagine T1 to be a scaler and T2 to
-be any other transformation of the data.
+illustration of what happens with three steps, T1, T2 and
+Classifier. Imagine T1 to be a scaler and T2 to be any other
+transformation of the data.
 
-If we call fit on this pipeline, it will first call fit on the first
-step with the input X. Then it will transform the input
-X to X1, and use X1 to fit the second step, T2. Then
-it will use T2 to transform the data from X1 to X2.
-Then it will fit the classifier on X2.
+If we call fit on this pipeline, it will first call fit on
+the first step with the input X. Then it will transform the
+input X to X1, and use X1 to fit the second step, T2. Then
+it will use T2 to transform the data from X1 to X2. Then it
+will fit the classifier on X2.
 
 If we call predict on some data X’, say the test set, it
-will call transform on T1, creating X’1. Then it will use
-T2 to transform X’1 into X’2, and call the predict
-method of the classifier on X’2. This sounds a bit
-complicated, but it’s really just doing “the right thing”
-to apply multiple transformation steps.
+will call transform on T1, creating X’1. Then it will use T2
+to transform X’1 into X’2, and call the predict method of
+the classifier on X’2. This sounds a bit complicated, but
+it’s really just doing “the right thing”to apply multiple
+transformation steps.
 
 ---
 
@@ -184,14 +146,14 @@ np.mean(scores), np.std(scores)
 ???
 
 How does that help with the cross-validation problem?
-Because now all steps are contain in pipeline, we
-can simply pass the whole pipeline to crossvalidation, and all processing will happen inside the
-cross-validation loop. That solve the data leakage
-problem.
+Because now all steps are contain in pipeline, we can simply
+pass the whole pipeline to crossvalidation, and all
+processing will happen inside the cross-validation loop.
+That solve the data leakage problem.
 
 Here you can see how we can build a pipeline using a
-standard scaler and kneighborsregressor and pass it
-to cross-validation.
+standard scaler and kneighborsregressor and pass it to
+cross-validation.
 
 ---
 
@@ -215,21 +177,21 @@ pipe = Pipeline((("scaler", StandardScaler()),
 
 ???
 
-But let’s talk a bit more about pipelines, because they
-are great. The pipeline has an attribute called steps,
-which --- contains its steps. Steps is a list of tuples,
-where the first entry is a string and the second is an
-estimator (model). The string is the “name” that is
-assigned to this step in the pipeline. You can see
-here that our first step is called “standardscaler” in all
-lower case letters, and the second is called
-kneighborsregressor, also all lower case letters.
+But let’s talk a bit more about pipelines, because they are
+great. The pipeline has an attribute called steps, which ---
+contains its steps. Steps is a list of tuples, where the
+first entry is a string and the second is an estimator
+(model). The string is the “name” that is assigned to this
+step in the pipeline. You can see here that our first step
+is called “standardscaler” in all lower case letters, and
+the second is called kneighborsregressor, also all lower
+case letters.
 
-By default, step names are just lowercased classnames. You can also name the steps yourself using
-the Pipeline class directly. Then you can specify the
-steps as tuples of name and estimator.
-make_pipeline is just a shortcut to generate the names
-automatically.
+By default, step names are just lowercased classnames. You
+can also name the steps yourself using the Pipeline class
+directly. Then you can specify the steps as tuples of name
+and estimator. make_pipeline is just a shortcut to generate
+the names automatically.
 
 ---
 
@@ -254,16 +216,17 @@ print(grid.score(X_test, y_test))
 
 ???
 
-These names are important for using pipelines with gridsearch. Recall that for using GridSearchCV you need to
-specify a parameter grid as a dictionary, where the keys
-are the parameter names. If you are using a pipeline inside
+These names are important for using pipelines with
+gridsearch. Recall that for using GridSearchCV you need to
+specify a parameter grid as a dictionary, where the keys are
+the parameter names. If you are using a pipeline inside
 GridSearchCV, you need to specify not only the parameter
-name, but also the step name – because multiple steps
-could have a parameter with the same name.
+name, but also the step name – because multiple steps could
+have a parameter with the same name.
 
 The way to do this is to use the stepname, then two
-underscores, and then the parameter name, as the key for
-the param_grid dictionary.
+underscores, and then the parameter name, as the key for the
+param_grid dictionary.
 
 You can see that the best_params_ will have this same
 format.
@@ -277,6 +240,45 @@ all transformations are contained in the pipeline.
 You should always use pipelines for preprocessing. Not only
 does it make your code shorter, it also makes it less likely
 that you have bugs.
+---
+# ColumnTransformer
+
+```python
+categorical = df.dtypes == object
+
+preprocess = make_column_transformer(
+    (StandardScaler(), ~categorical),
+    (OneHotEncoder(), categorical))
+
+```
+???
+New in scikit-learn 0.20 is the column transformer, which
+allows you to transforms only some of the columns. For
+example, you can call categorical encoder only on the
+categorical columns and call StandardScaler on the
+non-categorical columns, and then use that to preprocess
+your data. Right now using Pandas, make sure your column
+names match up, make everything to an integer,
+or use column transformer and everything is awesome.
+
+In contrast to basically all other estimators in sklearn,
+this uses the column information in pandas and allows you to slice
+out different columns based on column names, integer indices or boolean masks.
+In this example I'm constructing a boolean mask
+
+---
+class:center, middle
+![:scale 100%](images/column_transformer_schematic.png)
+???
+Here's a schematic of the column transformer.
+Most commonly you might want to separate continuous and categorical columns,
+but you can select any subsets of columns you like. They can also overlap.
+Or you can apply multiple transformations to the same set of columns.
+Let's say I want a scaled version of the data, but I also want to
+extract principal components. I can use the same column as inputs to multiple
+transformers, and the results will be concatenated.
+
+FIXME add code
 
     </textarea>
     <script src="remark-latest.min.js"></script>
