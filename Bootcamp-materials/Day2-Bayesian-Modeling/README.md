@@ -28,6 +28,8 @@
 	
 - **Required reading**: [Chapter 1](http://xcelab.net/rmpubs/rethinking/Statistical_Rethinking_sample.pdf) of _Statistical Rethinking_ by Richard McElreath, published by CRC Press in 2016.
 
+* **Install Stan**: Go [here](install_rstan.md) for installation instructions.
+
 ### Getting started
 
 #### Introductional Material
