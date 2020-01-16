@@ -1,5 +1,5 @@
 functions {
-  /* Kernel of joint PMF, i.e. numerator of Bayes rule ignoring constants
+  /* Kernel of joint PDF, i.e. numerator of Bayes rule ignoring constants
    * @param pi success probability between 0 and 1
    * @param pi_c failure probability between 0 and 1 (conceptually)
    * @param unused real array of other parameters (none in this case)
@@ -21,20 +21,20 @@ functions {
 data { // everything conditioned on in Bayes rule (passed from the interface)
   int<lower = 0> n;            // number of trials
   int<lower = 0, upper = n> y; // number of successes
-  real<lower = 0> a;           // first shape for beta prior
-  real<lower = 0> b;           // second shape for beta prior
+  real<lower = 0> a;           // first shape hyperparameter for beta prior
+  real<lower = 0> b;           // second shape hyperparameter for beta prior
 }
 
 transformed data { // any functions of things in the data block only
-  real empty[0];   // this is unused but the integrator needs it to be defined
+  real empty[0];   // this is unused but integrate_1d needs it to be defined
   real normalizer = integrate_1d(kernel,  // function being integrated
                                   0.0,    // left limit of integration
                                   1.0,    // right limit of integration
-                                  empty,  // shared parameters 
+                                  empty,  // shared parameters (not used here)
                                   {a, b}, // double precision data
                                   {n, y}, // integer data
                                   1e-8);  // relative tolerance
-  real log_normalizer = log(normalizer);  // used below in model block
+  real log_normalizer = log(normalizer);  // used below in the model block
 }
 
 parameters { // all exogenous unknowns when using Bayes rule

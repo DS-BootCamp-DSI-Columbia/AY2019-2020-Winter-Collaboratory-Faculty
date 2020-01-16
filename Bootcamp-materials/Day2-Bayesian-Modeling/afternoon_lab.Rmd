@@ -48,9 +48,9 @@ The most common prior distribution for an unknown simplex vector is the Dirichle
 a generalization of the Beta distribution to the case of more than two possibilities and has the PDF
 
 $$f\left(\boldsymbol{\pi} \mid \mathbf{a}\right) = \frac{\Gamma\left(\sum_{k = 1}^K a_k\right)}{\prod_{k = 1}^K \Gamma\left(a_k\right)} \prod_{k = 1}^K \pi_k^{a_k - 1}$$
-where $\Gamma\left(\cdot\right)$ is the gamma function, whose logarithm is denoted by `lgamma` in R and Stan,
-and $\mathbf{a}$ is a positive vector of size $K$ that governs the shape of the Dirichlet distribution. The
-expectation of the $k$-th element of a Dirichlet-distributed random variable is
+where $\Gamma\left(a\right) = \int_0^\infty x^{a - 1} e^{-x} dx$ is the gamma function, whose logarithm is 
+denoted by `lgamma` in R and Stan, and $\mathbf{a}$ is a positive vector of size $K$ that governs the shape 
+of the Dirichlet distribution. The expectation of the $k$-th element of a Dirichlet-distributed random variable is
 $$\forall k \ \mathbb{E} \pi_k = \frac{a_k}{\sum_{j = 1}^K a_j}.$$
 and the larger is the sum in the denominator, the smaller is the variance.
 
@@ -74,8 +74,8 @@ parameters {
 ```
 
 Below that, write a `model` block that increments the `target` keyword with the logarithm of a Dirichlet kernel 
-and a categorical log-likelihood over the first rolls of each frame (i.e. you can ignore the second roll for now).
-You could use `for` loops, which can be specified in the Stan language as in R
+and a categorical log-likelihood over the first rolls of each frame of the $2010$ US Open (i.e. you can ignore the 
+second rolls of each frame for now). You could use `for` loops, which can be specified in the Stan language as in R
 ```{stan output.var="for", eval = FALSE}
 for (k in 1:K) {
   // do stuff, often indexing by k
@@ -99,8 +99,8 @@ data here. The steps involved are:
 
 1. Declare a vector of size `N` to hold these predictive log probabilities
 2. Execute a loop from `1` to `N` where you
-    * Calculate the number of pins still upright for the second roll
-    * Subset the `pi` parameter vector so that its size is equal to the number of pins still upright,
+    * Calculate the number of pins still upright for the second roll (and add $1$ to make it an index)
+    * Subset the `pi` parameter vector so that its size is equal to this index,
       using either the `head` function or R-style indexing of a numeric vector by a sequance of integer 
       indices
     * Unless there was a gutter ball on the first roll, this subsetted vector cannot be interpreted
@@ -132,61 +132,55 @@ entire game of bowling, which consists of ten frames. The usual rules for scorin
 https://en.wikipedia.org/wiki/Ten-pin_bowling#Traditional_scoring
 
 The main complication in the scoring rules is that if a bowler obtains a spare or a strike in this frame,
-then bonus points are awarded depending on the result of _future_ rolls, so you have to keep track of
-what happened in the previous frame as you simulate the game. Also, if a bowler obtains a spare or a strike 
-in the tenth frame, an additional roll or two are awarded to accumulate bonus points.
+then bonus points are awarded depending on the result of _future_ rolls. Also, if a bowler obtains a spare 
+or a strike in the tenth frame, an additional roll or two are awarded to accumulate bonus points.
 
-To draw from a posterior predictive distribution, you draw from the distribution used for the likelihood
-conditional on a posterior draw of the parameters. For example, to draw from the posterior predictive
-distribution for the number of pins knocked down on the first roll of a frame of bowling, you could do
+To draw from a posterior predictive distribution of a bowler's score, you first need to simulate an
+entire game of bowling, one roll at a time, using draws from the posterior distribution of $\boldsymbol{\pi}$.
+For example, to draw from the posterior predictive distribution for the number of pins knocked down on the first 
+roll of a frame of bowling, you could do
 
 ```{stan output.var="x_1", eval = FALSE}
   int x_1 = categorical_rng(pi) - 1;
 ```
-so that `x_1` is a realization between $0$ and $10$ (which would be a strike).
+so that `x_1` is a realization of pins knocked down between $0$ and $10$ (which would be a strike).
 
-Edit intermediate.stan to add a `functions` block with a function called `game_rng` that takes a
+Edit intermediate.stan to add a `functions` block with a function called `scorecard_rng` that takes a
 vector of probabilities that each number of pins gets knocked down on a roll and returns the bowler's
-score for an entire simulated game. An outline of this function would look like
-
+results for an entire simulated game in the form of a $12 \times 2$ integer array. The $12$ is for 
+the possibility that two additional rolls are given for a strike in the tenth frame, and the $2$ is
+for the number of possible rolls in each frame. Then, write another function called `score_game` that 
+takes such a $12 \times 2$ integer array and calculates the bowler's score for the game. Here is an 
+outline of those two functions:
 ```{stan output.var="scoring", eval = FALSE}
 functions {
-  int game_rng(vector pi) {
-    int strike_previous = 0;  // 0 / 1 flag for strike on previous frame
-    int spare_previous = 0;   // 0 / 1 flag for spare on previous frame
-    int score = 0;            // increment this to score a simulated game
+  int[,] scorecard_rng(vector pi) {
+    int scorecard[12, 2] = rep_array(0, 12, 2); // initialize 12x2 array with zeros
     for (frame in 1:10) {
-      // write code to simulate bowling and keep incrementing the bowler's score
+      // fill in scorecard with draws from the predictive distribution
     }
-    // possible extra rolls in the tenth frame
-    if (strike_previous) {
-      // write code to score two additional rolls starting with 10 pins upright
-    } else if (spare_previous) {
-      // write code to score one additional roll with 10 pins upright
+    if (scorecard[10, 1] == 10) { // strike in tenth frame
+      // fill in rows 11 and / or 12 with draws from the predictive distribution
+    } else if (sum(scorecard[10, ]) == 10) { // spare in tenth frame
+      // fill in row 11 with draws from the predictive distribution
+    }
+    return scorecard;
+  }
+  
+  int score_game(int[,] scorecard) {
+    int score = 0;
+    for (frame in 1:10) {
+      // increment score based on results in scorecard
     }
     return score;
   }
 }
 ```
 
-Inside the loop over frames from $1$ to $10$, the basic implementation steps are:
-
-1. Simulate the first roll of the current frame. If there was a strike or spare on the _previous_ 
-  frame, increment `score` with bonus points in addition to regular points.
-2. If the first roll of the current frame was not a strike, simulate the second roll of the current frame. 
-  If there was a strike on the _previous_ frame, increment `score` with bonus points in addition to regular 
-  points.
-3. Set `strike_previous` and `spare_previous` to $1$ or $0$ as appropriate depending on the result
-  of the _current_ frame before moving onto the next frame.
-  
-When you break out of the loop over frames from $1$ to $10$, it is possible that the bowler would
-have gotten a strike or a spare on the tenth frame, in which case you would need to handle the
-results of additional roll(s) that are awarded.
-
 Remember that inside a `for` loop, `if` clause, `else` clause, etc., you can declare new local
 variables to keep your code organized and easy to read. However, these local variables have to
 be declared right after the opening `{`. Thus, sometimes you have to declare a symbol but not
-define it farther down in your code. In particular, when simulating the second roll of a frame
+define it until farther down in your code. In particular, when simulating the second roll of a frame
 of bowling, you will need to do something like
 
 ```{stan output.var="x_2", eval = FALSE}
@@ -194,17 +188,16 @@ if (x_1 < 10) { // not a strike
   int x_2; // declared now but defined later
   // more code to set up the conditional probabilities
   x_2 = categorical_rng(conditional_probabilies);
-  score += x_1 + x_2;
 }
 ```
 
-Finally, your `generated quantities` block should call the `game_rng` function that you 
-defined in the `functions` block in order to store the posterior predictive distribution in
-the output like
+Finally, your `generated quantities` block should call the two functions that you 
+defined in the `functions` block in order to store the posterior predictive distribution 
+of the bowler's score in the output, like
 
 ```{stan output.var="score", eval = FALSE}
 generated quantities {
-  int score = game_rng(pi);
+  int score = score_game(scoreboard_rng(pi));
 }
 ```
 
@@ -251,10 +244,12 @@ roll_1 <- t(matrix(US_Open2010$roll_1 + 1, nrow = 10, ncol = J))
 roll_2 <- t(matrix(US_Open2010$roll_2 + 1, nrow = 10, ncol = J))
 ```
 
+## Multilevel Stan Program
+
 Create a text file called multilevel.stan and paste the following into it.
 ```{stan output.var="multilevel", eval = FALSE}
 functions {
-  // copy your game_rng function here
+  // copy your scoreboard_rng and score_game functions here
 }
 data {
   int<lower = 0> J;                         // number of bowlers

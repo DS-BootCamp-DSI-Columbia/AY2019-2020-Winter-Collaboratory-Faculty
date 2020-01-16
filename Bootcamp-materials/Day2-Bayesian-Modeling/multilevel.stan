@@ -20,7 +20,7 @@ model {
     target += dirichlet_lpdf(pi_j | mu_gamma); // Dirichlet prior for j-th bowler
     target += log(pi_j)[roll_1[j]];            // log-likelihood over first rolls
     for (n in 1:10) if (roll_1[j, n] < 11) {   // log-likelihood over second rolls
-      int pins = 11 - roll_1[j, n];
+      int pins = 11 - roll_1[j, n] + 1;
       vector[pins] pi_ = pi_j[1:pins];
       pi_ /= sum(pi_);
       target += log(pi_[roll_2[j, n]]);
@@ -30,6 +30,6 @@ model {
 generated quantities {
   int score[J];
   int winner;
-  for (j in 1:J) score[j] = game_rng(pi[j]);
+  for (j in 1:J) score[j] = score_game(scorecard_rng(pi[j]));
   winner = sort_indices_desc(score)[1]; // index of bowler with highest score
 }

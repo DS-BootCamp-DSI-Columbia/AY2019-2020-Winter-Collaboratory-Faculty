@@ -13,12 +13,12 @@ model {
   target += (a - 1) .* log_pi;          // Dirichlet prior
   target += log_pi[roll_1];             // Categorical log-likelihood
   for (n in 1:N) if (roll_1[n] < 11) {
-    int pins = 11 - roll_1[n];          // number of pins upright (+ 1)
+    int pins = 11 - roll_1[n] + 1;      // number of pins upright (+ 1)
     vector[pins] pi_ = pi[1:pins];      // condition on pins available
     pi_ /= sum(pi_);                    // renormalize probabilities
     target += log(pi_[roll_2[n]]);      // Categorical log-likelihood
   }
 }
 generated quantities {
-  int score = game_rng(pi);             // defined in game_rng.stan
+  int score = score_game(scorecard_rng(pi)); // defined in game_rng.stan
 }

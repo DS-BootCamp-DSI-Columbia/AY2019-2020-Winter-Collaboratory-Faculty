@@ -9,8 +9,8 @@ parameters {
 }
 model {
   vector[11] log_pi = log(pi);          // local variable, not stored in output
-  target += (a - 1) .* log_pi;          // Dirichlet prior
-  target += log_pi[roll_1];             // Categorical log-likelihood
+  target += (a - 1) .* log_pi;          // Dirichlet prior with elementwise multiplication
+  target += log_pi[roll_1];             // Categorical log-likelihood over the data
   
   /* the above is equivalent to, but more computationally efficient than
   for (k in 1:11) {
@@ -24,7 +24,7 @@ model {
 generated quantities {
   vector[N] log_p;
   for (n in 1:N) {
-    int pins = 11 - roll_1[n];          // number of pins upright (+ 1)
+    int pins = 11 - roll_1[n] + 1;      // number of pins upright (+ 1)
     vector[pins] pi_ = pi[1:pins];      // condition on pins available
     pi_ /= sum(pi_);                    // renormalize probabilities
     log_p[n] = log(pi_[roll_2[n]]);     // log predictive probability
