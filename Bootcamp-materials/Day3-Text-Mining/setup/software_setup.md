@@ -11,9 +11,10 @@ Overall, installing `conda` will automatically install `Python` so there are onl
 - Install some necessary libraries for the bootcamp
 
 ## Installing Anaconda
-There are two methods to do this depending on if you're comfortable with the command line?
+There are two methods to do this depending on if you're comfortable with the command line:
 - Not sure: then just install [Anaconda Navigator](#anaconda-gui-via-anaconda-navigator)
 - Yes, then jump ahead to [installing conda](#Command-line-interface-with-Anaconda-via-conda)
+
 
 #### Anaconda GUI via Anaconda Navigator
 1. Please get [Anaconda Navigator](https://docs.anaconda.com/anaconda/navigator/) which is a nice GUI
@@ -60,15 +61,15 @@ Python's true value is in its large community of developers and users. To levera
 
 #### Installing packages using Anaconda Navigator
 1. Go back to the `Environment` tab on the far left and make sure your desired environment is selected (in this document that's `text-mine`).
-    ![install packages for anaconda navigator](images/anaconda_nav_packages.png =500x)
+    ![install packages for anaconda navigator](images/anaconda_nav_packages.png)
 2. Use the dropdown menu shown above to examine the packages not installed.
 3. Use the search box to find `scikit-learn`, `pandas`, and `nltk` and make sure they're selected.
-    ![choosing packages in anaconda navigator](images/anaconda_nav_choosing_packages.png =500x)
+    ![choosing packages in anaconda navigator](images/anaconda_nav_choosing_packages.png)
 
     I would make sure all 3 packages are selected before moving to the next step. Once the ![download icon](images/download_icon.png) appears, you can safely search for the next package. Notice the number of packages selected are indicated below.
 4. (This will take awhile)  Click on `Apply` on the right bottom and wait for the packages to be installed. Click on `Apply` once more to confirm the packages.
 5. You should be able to confirm if the installation succeeded by repeating this little example below in your Jupyter Notebook
-  ![confirm install success](images/install_success_test.png =500x)
+  ![confirm install success](images/install_success_test.png)
 
 
 #### Installing packages using conda
@@ -77,6 +78,6 @@ Python's true value is in its large community of developers and users. To levera
     ```
     conda install nltk scikit-learn pandas
     ```
-    ![conda commands](images/conda_install_nltk_packages.png =700x)
+    ![conda commands](images/conda_install_nltk_packages.png)
 3. You should be able to confirm if the installation succeeded by repeating this little example below in your Jupyter Notebook
-      ![confirm install success](images/install_success_test.png =500x)
+      ![confirm install success](images/install_success_test.png)

@@ -10,7 +10,7 @@ This interactive course covers the basics of text mining using Python. Unstructu
 - When: Friday, January 17th, 2020
 - Where: Room 903 [SSW](http://stat.columbia.edu/location-and-directions/)
 - Instructor info:
-	- Wayne Tai Lee
+	- [Wayne Tai Lee](https://www.linkedin.com/in/waynetailee/)
 	- email: wtl2109 | columbia.edu
 
 ### Mandatory pre-assignment:
@@ -26,9 +26,9 @@ This interactive course covers the basics of text mining using Python. Unstructu
 
 10:00am - 11:00am Lecture:
 
-* Introduction to text mining
+* [Introduction to text mining](session_notes/intro.md)
 * Regular Expression and String Manipulation in Python
-* Common text pre-processing text
+* Common pre-processing steps for text
 
 11:00am - 12:00pm Lab
 
@@ -52,6 +52,6 @@ This interactive course covers the basics of text mining using Python. Unstructu
 
 ### Prerequisites
 
-+ Basics of statistics (mean, variance, etc.)
++ Basics of statistics (mean, variance, t-test etc.)
 + Basic programming skills in Python
-+ Basic understanding of data structures
++ Basic understanding of data structures (data frames)

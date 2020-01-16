@@ -1,0 +1,276 @@
+---
+title: "Bayesian Probability Lab"
+author: "Ben Goodrich"
+editor_options:
+  chunk_output_type: console
+output: 
+  html_document: 
+    number_sections: yes
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(crayon)
+card <- function(value = c("A", as.character(2:9), "10", "J", "Q", "K"), 
+                 suit = c("S", "H", "D", "C"),
+                 style = NULL) {
+  value <- match.arg(value)
+  suit <- match.arg(suit)
+  
+  deck <- list(S = c("\U1F0A1", "\U1F0A2", "\U1F0A3", "\U1F0A4", "\U1F0A5", "\U1F0A6", "\U1F0A7",
+                     "\U1F0A8", "\U1F0A9", "\U1F0AA", "\U1F0AB", "\U1F0AD", "\U1F0AE"),
+               H = c("\U1F0B1", "\U1F0B2", "\U1F0B3", "\U1F0B4", "\U1F0B5", "\U1F0B6", "\U1F0B7",
+                     "\U1F0B8", "\U1F0B9", "\U1F0BA", "\U1F0BB", "\U1F0BD", "\U1F0BE"),
+               D = c("\U1F0C1", "\U1F0C2", "\U1F0C3", "\U1F0C4", "\U1F0C5", "\U1F0C6", "\U1F0C7",
+                     "\U1F0C8", "\U1F0C9", "\U1F0CA", "\U1F0CB", "\U1F0CD", "\U1F0CE"),
+               C = c("\U1F0D1", "\U1F0D2", "\U1F0D3", "\U1F0D4", "\U1F0D5", "\U1F0D6", "\U1F0D7",
+                     "\U1F0D8", "\U1F0D9", "\U1F0DA", "\U1F0DB", "\U1F0DD", "\U1F0DE"))
+               
+  value <- switch(value,
+                  "A" = 1L,
+                  "10" = 10L,
+                  "J" = 11L,
+                  "Q" = 12L,
+                  "K" = 13L,
+                  as.integer(value))
+  if (is.null(style)) style <- if (suit %in% c("H", "D")) red else reset
+  return(fansi::sgr_to_html(style(deck[[suit]][value])))
+}
+```
+
+In this lab, we will be considering a hand from a poker tournament that you should watch at
+
+https://youtu.be/dZyGfk2HDaY
+
+The goals of this lab are to
+
+1. See how professional poker players update their beliefs about their opponents' face-down
+  cards as they accumulate more data
+2. Understand how decisions can be made to maximize _expected_ utility
+3. Calculate probabilities, in this case using the R language
+
+Before starting, you need to know just a little bit about the applicable rules of poker,
+specifically the most popular form of poker No Limit Texas Hold'em. Each player at the
+table is dealt two face-down cards from a shuffled deck that consists of $52$ cards whose $13$
+values (in increasing order) are 2 3 4 5 6 7 8 9 10 J Q K A on each of four suits
+(spades, hearts, diamonds, and clubs). Thus, there are ${52 \choose 2} = \frac{52!}{2! \times 50!} 
+= 1326$ possible combinations of two face-down cards, as their order is not important. The players 
+can look at their own two face-down cards and must combine them with three of the five face-up cards 
+in the middle of the table to form a five-card poker hand. More improbable five-card poker hands beat 
+less improbable hands, and if two or more players have equally improbable hands, the player with the 
+highest card wins. Specifically,
+
+* A "straight flush" consists of five cards that have consecutive values and are all of
+  the same suit, which is rare but beats all other hands
+* "Four of a kind", consists of four cards that all have the same value and one other
+  irrelevant card, which beats all hands but a "straight flush"
+* A "full house", consists of three cards that all have the same value and two other
+  cards that also have the same value, which beats all hands except "four of a kind"
+  and a "straight flush"
+* A "flush" consists of five cards that all have the same suit, which beats all
+  hands not previously mentioned
+* A "straight" consists of five cards that have consecutive values. Note that an Ace
+  can be considered higher than a King or lower than a 2 for the purpose of forming
+  a straight, so A K Q J 10 is a straight, as is A 2 3 4 5. A "straight"
+  beats all hands not previously mentioned.
+* "Three of a kind", consists of three cards that all have the same value and two
+  other irrelevant cards, which beats all hands not previously mentioned
+* "Two pair" consists of two cards that have the same value, two other cards that
+  also have the same value, and a fifth irrelevant card. Again, having "two pair"
+  beats all hands not previously mentioned.
+* "One pair" consists of two cards that have the same value and three irrelevant
+  cards, which beats any hand that does not have (at least) two cards of the same 
+  value or a straight or a flush.
+  
+If none of the players has any of the aforementioned hands, the player with the
+highest card among the two face-down cards wins all the poker chips that have
+been bet.
+
+There are up to four rounds of betting, one before any cards in the middle have
+been revealed and three more rounds as cards in the middle are incrementally
+revealed. The players take turns clockwise around the table and each has the 
+opportunity to 
+
+* "Call", which means to match the number of poker chips bet by the previous player
+* "Raise", which means to bet in excess of the number of poker chips bet by the
+  previous player
+* "Fold", which means to bet no additional poker chips and forgo the opportunity to
+  win any of the chips that have been bet this hand. At that point, the player hands
+  their two face-down cards back to the dealer.
+  
+In addition, before any cards are dealt, each of the five players has to bet some (in this case
+$120,000$) poker chips as an "ante", one player has to bet a lot (in this case
+$600,000$) poker chips as the "big blind", and one player has to bet half as many (in this case
+$300,000$) poker chips as the "small blind". Thus, in this case, there are
+$1,500,000$ poker chips that have been bet before any of the players see their
+two face-down cards. For more details on the rules, you can refer to (although it is not really
+necessary)
+
+https://en.wikipedia.org/wiki/Texas_hold_%27em
+
+At the outset of this video, the five players have the following amounts of poker chips:
+```{r}
+stacks <- c(Salomon  = 27450000, # must post the "big blind" of 600,000 and ante 120,000
+            Kaverman =  8025000, # has to start the betting and ante 120,000
+            Holz     = 28675000, # must ante 120,000
+            Bonomo   = 51150000, # must ante 120,000
+            Smith    = 19700000) # must post the "small blind" of 300,000 and ante 120,000
+```
+However, in a poker tournament, you cannot simply leave the table and redeem your poker
+chips for cash. Rather, poker players are eliminated from the tournament when they have
+no poker chips left and cash prizes are awarded for being among the last few players to
+be eliminated. Specifically, in this video, the cash prizes were
+
+* 5th place: $2 million
+* 4th place: $2.84 million
+* 3rd place: $4 million
+* 2nd place: $6 million
+* 1st place: $10 million
+
+and nothing was awarded for 6th place or worse. Just prior to this video, the 6th place
+player was eliminated.
+
+# Byron Kaverman's Decision
+
+## Prior
+
+Byron Kaverman is dealt `r card("A", "C")` `r card("5", "C")`. **What was the _ex ante_
+probability of being dealt these two cards (or really any combination of two cards)?**
+
+## Posterior
+
+Kaverman starts the video by betting all of his remaining poker chips, which is
+standard for a poker player in this situation, namely one who has a good hand but much fewer
+poker chips than all the other players at the table. Specifically, simulations have shown
+that for someone in Kaverman's situation, it is better (albeit high variance) to bet all of one's poker 
+chips than to fold (or to bet only some poker chips) if and only if they have any of the following 
+$138$ hands:
+
+* Big pairs (Js or better), of which there are four pairs $\times$ six suit combinations for 24 hands:
+    * `r card("A", "S")` `r card("A", "H")`, `r card("A", "S")` `r card("A", "D")`, `r card("A", "S")` `r card("A", "C")`,
+      `r card("A", "H")` `r card("A", "D")`, `r card("A", "H")` `r card("A", "C")`, `r card("A", "D")` `r card("A", "C")`
+    * `r card("K", "S")` `r card("K", "H")`, `r card("K", "S")` `r card("K", "D")`, `r card("K", "S")` `r card("K", "C")`,
+      `r card("K", "H")` `r card("K", "D")`, `r card("K", "H")` `r card("K", "C")`, `r card("K", "D")` `r card("K", "C")`  
+    * `r card("Q", "S")` `r card("Q", "H")`, `r card("Q", "S")` `r card("Q", "D")`, `r card("Q", "S")` `r card("Q", "C")`,
+      `r card("Q", "H")` `r card("Q", "D")`, `r card("Q", "H")` `r card("Q", "C")`, `r card("Q", "D")` `r card("Q", "C")`
+    * `r card("J", "S")` `r card("J", "H")`, `r card("J", "S")` `r card("J", "D")`, `r card("J", "S")` `r card("J", "C")`,
+      `r card("J", "H")` `r card("J", "D")`, `r card("J", "H")` `r card("J", "C")`, `r card("J", "D")` `r card("J", "C")`
+* A pair of 10s, of which there are 6 suit combinations:
+    * `r card("10", "S")` `r card("10", "H")`, `r card("10", "S")` `r card("10", "D")`, `r card("10", "S")` `r card("10", "C")`,
+      `r card("10", "H")` `r card("10", "D")`, `r card("10", "H")` `r card("10", "C")`, `r card("10", "D")` `r card("10", "C")`
+* Medium pairs (6s or better), of which there are four pairs $\times$ six suit combinations for 24 hands:
+    * `r card("9", "S")` `r card("9", "H")`, `r card("9", "S")` `r card("9", "D")`, `r card("9", "S")` `r card("9", "C")`,
+      `r card("9", "H")` `r card("9", "D")`, `r card("9", "H")` `r card("9", "C")`, `r card("9", "D")` `r card("9", "C")`,  
+    * `r card("8", "S")` `r card("8", "H")`, `r card("8", "S")` `r card("8", "D")`, `r card("8", "S")` `r card("8", "C")`,
+      `r card("8", "H")` `r card("8", "D")`, `r card("8", "H")` `r card("8", "C")`, `r card("8", "D")` `r card("8", "C")`,
+    * `r card("7", "S")` `r card("7", "H")`, `r card("7", "S")` `r card("7", "D")`, `r card("7", "S")` `r card("7", "C")`,
+      `r card("7", "H")` `r card("7", "D")`, `r card("7", "H")` `r card("7", "C")`, `r card("7", "D")` `r card("7", "C")`,  
+    * `r card("6", "S")` `r card("6", "H")`, `r card("6", "S")` `r card("6", "D")`, `r card("6", "S")` `r card("6", "C")`,
+      `r card("6", "H")` `r card("6", "D")`, `r card("6", "H")` `r card("6", "C")`, `r card("6", "D")` `r card("6", "C")`
+* Ace and at least a nine of the same suit, of which there are five intersections $\times$ four suits for 20 hands:
+    * `r card("A", "S")` `r card("K", "S")`, `r card("A", "S")` `r card("Q", "S")`, `r card("A", "S")` `r card("J", "S")`,
+      `r card("A", "S")` `r card("10", "S")`, `r card("A", "S")` `r card("9", "S")`
+    * `r card("A", "H")` `r card("K", "H")`, `r card("A", "H")` `r card("Q", "H")`, `r card("A", "H")` `r card("J", "H")`,
+      `r card("A", "H")` `r card("10", "H")`, `r card("A", "H")` `r card("9", "H")`
+    * `r card("A", "D")` `r card("K", "D")`, `r card("A", "D")` `r card("Q", "D")`,
+      `r card("A", "D")` `r card("J", "D")`, `r card("A", "D")` `r card("10", "D")`, `r card("A", "D")` `r card("9", "D")`
+    * `r card("A", "C")` `r card("K", "C")`, `r card("A", "C")` `r card("Q", "C")`, `r card("A", "C")` `r card("J", "C")`,
+      `r card("A", "C")` `r card("10", "C")`, `r card("A", "C")` `r card("9", "C")`
+* Ace and a five of the same suit, for any of the four suits: `r card("A", "S")` `r card("5", "S")`,
+  `r card("A", "H")` `r card("5", "H")`, `r card("A", "D")` `r card("5", "D")`, `r card("A", "C")` `r card("5", "C")`
+* Both cards at least 10 of the same suit, of which there are six intersections $\times$ four suits for 24 hands:
+    * `r card("K", "S")` `r card("Q", "S")`, `r card("K", "S")` `r card("J", "S")`, `r card("K", "S")` `r card("10", "S")`,
+      `r card("Q", "S")` `r card("J", "S")`, `r card("Q", "S")` `r card("10", "S")`, `r card("J", "S")` `r card("10", "S")`
+    * `r card("K", "H")` `r card("Q", "H")`, `r card("K", "H")` `r card("J", "H")`, `r card("K", "H")` `r card("10", "H")`,
+      `r card("Q", "H")` `r card("J", "H")`, `r card("Q", "H")` `r card("10", "H")`, `r card("J", "H")` `r card("10", "H")`  
+    * `r card("K", "D")` `r card("Q", "D")`, `r card("K", "D")` `r card("J", "D")`, `r card("K", "D")` `r card("10", "D")`,
+      `r card("Q", "D")` `r card("J", "D")`, `r card("Q", "D")` `r card("10", "D")`, `r card("J", "D")` `r card("10", "D")` 
+    * `r card("K", "C")` `r card("Q", "C")`, `r card("K", "C")` `r card("J", "C")`, `r card("K", "C")` `r card("10", "C")`,
+      `r card("Q", "C")` `r card("J", "C")`, `r card("Q", "C")` `r card("10", "C")`, `r card("J", "C")` `r card("10", "C")`
+* Ace and at least a Jack of different suit, of which there are six intersections $\times {4 \choose 2}$ suits for 36 hands:
+    * `r card("A", "S")` `r card("K", "H")`, `r card("A", "S")` `r card("K", "D")`, `r card("A", "S")` `r card("K", "C")`
+    * `r card("A", "S")` `r card("Q", "H")`, `r card("A", "S")` `r card("Q", "D")`, `r card("A", "S")` `r card("Q", "C")`
+    * `r card("A", "S")` `r card("J", "H")`, `r card("A", "S")` `r card("J", "D")`, `r card("A", "S")` `r card("J", "C")`
+    * `r card("A", "H")` `r card("K", "S")`, `r card("A", "H")` `r card("K", "D")`, `r card("A", "H")` `r card("K", "C")`  
+    * `r card("A", "H")` `r card("Q", "S")`, `r card("A", "H")` `r card("Q", "D")`, `r card("A", "H")` `r card("Q", "C")`
+    * `r card("A", "H")` `r card("J", "S")`, `r card("A", "H")` `r card("J", "D")`, `r card("A", "H")` `r card("J", "C")`
+    * `r card("A", "D")` `r card("K", "S")`, `r card("A", "D")` `r card("K", "H")`, `r card("A", "D")` `r card("K", "C")`
+    * `r card("A", "D")` `r card("Q", "S")`, `r card("A", "D")` `r card("Q", "H")`, `r card("A", "D")` `r card("Q", "C")`  
+    * `r card("A", "D")` `r card("J", "S")`, `r card("A", "D")` `r card("J", "H")`, `r card("A", "D")` `r card("J", "C")`
+    * `r card("A", "C")` `r card("K", "S")`, `r card("A", "C")` `r card("K", "H")`, `r card("A", "C")` `r card("K", "D")`
+    * `r card("A", "C")` `r card("Q", "S")`, `r card("A", "C")` `r card("Q", "H")`, `r card("A", "C")` `r card("Q", "D")`
+    * `r card("A", "C")` `r card("J", "S")`, `r card("A", "C")` `r card("J", "H")`, `r card("A", "C")` `r card("J", "D")`
+
+Professional poker players do not look at their two face-down cards until it is their turn to bet in order to not
+give away any information with their body language. **At the instant that Kaverman goes all-in but before anyone else
+looks at their two face-down cards, from another player's perspective, what is the posterior probability that Kaverman
+has `r card("A", "C")` `r card("5", "C")`? Can you write this posterior probability as a special case of Bayes' Rule?**
+
+# Fedor Holz's First Decision
+
+Fedor Holz is dealt `r card("10", "S")` `r card("10", "C")` and is next to bet.
+
+## Probability of Three of a Kind
+
+**If Kaverman had a pair of Jacks, Queens, Kings, or Aces, what is the probability that Holz's five-card hand ends up
+being better than Kaverman's five-card hand?** For the purposes of this question, you can ignore the tiny probability
+that either player ends up with a straight flush, four of a kind, full house, flush, or straight.
+
+## Probability of Trailing
+
+Holz's hand would be a favorite to beat Kaverman's hand unless Kaverman has a pair of Jacks, Queens, Kings, or Aces
+(and they would almost certainly be tied if Kaverman had `r card("10", "H")` `r card("10", "D")`). **From Holz's
+perspective at the time he calls Kaverman, what is the probability Holz's hand is not a favorite to beat Kaverman's
+hand?**
+
+# Rick Salomon's Decision
+
+After Holz calls Kaverman's bet and both Justin Bonomo and Dan Smith fold, $17,550,000$ chips have been bet. Rick
+Salomon is dealt `r card("A", "H")` `r card("K", "H")` and bets all of his remaining $26,730,000$ chips. One of
+the commentators says about 1:38 into the video that Salomon would not do so unless he had a pair of Jacks,
+Queens, Kings, Aces, or some combination of an Ace and a King (that may or may not be of the same suit). **Use
+probability to inexactly sketch an argument as to why that is true.**
+
+# Fedor Holz's Second Decision
+
+Between 1:03 and 1:04 of the video, Salomon picks up the `r card("A", "H")` in his right hand in such a way
+that everyone (including the referee, who is wearing a tuxedo) can see it. By rule, if a player's face-down
+card is revealed to any other player, it has to be turned face-up (in order to prevent players from colluding).
+At this point, Holz knows that Salomon's remaining face-down card is one of `r card("A", "S")`, `r card("A", "D")`,
+`r card("A", "C")`, `r card("K", "S")`, `r card("K", "H")`, `r card("K", "D")`, or `r card("K", "C")`.
+
+## Beating a King that is not `r card("K", "H")`
+
+Suppose Salomon's remaining face-down card is a King but not `r card("K", "H")`. **What is the probability that 
+Holz's five-card hand ends up being better than Salomon's five-card hand?** For the purposes of this question, 
+you can ignore the tiny probability that either player ends up with a straight flush, four of a kind, full house, 
+flush, or straight. Also, you can ignore the (considerable) possibility that Kaverman has an Ace and / or a King.
+
+## Probability that Kaverman has an Ace
+
+Starting at about 2:52 into the video, one of the commentators rambles that the proposition that Kaverman
+has an Ace is "one of those 50-50 things" and later "maybe there is a 30% chance that [Kaverman] has an
+Ace but that influence's [Holz's] decision". **From Holz's perspective, what is the probability that
+Kaverman has at least one Ace?**
+
+# How Much Expected Money Did Salomon Cost Himself?
+
+Suppose Salomon did not expose  `r card("A", "H")` as he went all-in, in which case Holz would have folded 
+and Kaverman would have been eliminated when Salomon made two pair. The four remaining amounts of poker chips 
+would then be
+```{r}
+stacks <- c(Salomon = 43800000, Holz = 20495000, Bonomo = 51030000, Smith = 19280000)
+```
+Under the Independent Chip Model (ICM), the probability of each remaining player winning a poker 
+tournament is equal to the proportion of chips that they have:
+```{r}
+(proportions <- stacks / sum(stacks))
+```
+Then, the probability of a player coming in second place, given that they do not come in first
+place, is equal to the proportion of chips the player has *excluding the chips of the player who wins
+first place*. When calculating the probability of a player coming in second place, you have to
+take into account that there are three different bivariate probabilities that the player comes
+in second place and another player comes in first place. The probability of a player coming in 
+third place, given that they do not come in first place or second place, is conceptually 
+similar. **Under the above assumptions, what would be the expected amount of prize money for
+Salomon, as compared to the $2.84 million he actually won for fourth place?**
