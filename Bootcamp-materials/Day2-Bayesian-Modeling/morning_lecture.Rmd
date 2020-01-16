@@ -1,0 +1,319 @@
+---
+title: Bayesian Probability
+author: Ben Goodrich
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+autosize: true
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{color}
+   - \usepackage{nicefrac}
+output:
+  ioslides_presentation:
+    widescreen: true
+editor_options: 
+  chunk_output_type: console
+---
+<style type="text/css">
+slides > slide:not(.nobackground):after {
+  content: '';
+}
+</style>
+
+```{r, setup, include = FALSE}
+options(width = 90)
+library(knitr)
+knit_hooks$set(small.mar = function(before, options, envir) {
+    if (before) par(mar = c(4, 4, .1, .1))  # smaller margin on top and right
+})
+```
+
+## Obligatory Disclosure
+
+* Ben is an employee of Columbia University, which has received several research grants to develop Stan
+* Ben is also a manager of GG Statistics LLC, which uses Stan for business purposes
+* According to Columbia University 
+  [policy](https://research.columbia.edu/content/conflict-interest-and-research), any such employee who 
+  has any equity stake in, a title (such as officer or director) with, or is expected to earn at least 
+  $\$5,000.00$ per year from a private company is required to disclose these facts in presentations
+
+## Links
+
+* Neither Bayesian analysis nor Stan can be learned in one day
+* If you need to locate a research assistant with experience in Stan or a collaborator for a grant
+  application involving Stan, contact 
+    * Me (benjamin.goodrich@columbia.edu)
+    * Andrew Gelman (gelman@stat.columbia.edu) 
+    * One of the other many Stan developers at Columbia
+* If you have questions about specifying or analyzing a Stan program, post at
+  http://discourse.mc-stan.org/ and there are many people who can help you
+* You may want to sit in or enroll in my Spring semester class on Bayesian analysis with Stan
+  http://www.columbia.edu/cu/bulletin/uwb/subj/QMSS/G5065-20201-001/
+* If you are looking for a textbook to learn on your own, I recommend 
+  _[Statistical Rethinking](https://www.crcpress.com/Statistical-Rethinking-A-Bayesian-Course-with-Examples-in-R-and-STAN/McElreath/p/book/9780367139919)_ by Richard McElreath
+* A more mathematical treatment can be found on Mike Betancourt's [GitHub](https://betanalpha.github.io/writing/)
+
+## Random Variables
+
+A function is a rule that UNIQUELY maps each element of an input set to some element of an output set.
+A random variable is a FUNCTION from the sample space, $\Omega$, to (some subset of) $\mathbb{R}$ with a probability-based rule, such as
+```{r, echo = FALSE, small.mar = TRUE}
+curve(qexp, from = 0, to = 1, xlab = "x", ylab = "g(x)", las = 1)
+```
+
+## Sample Space
+
+> The sample space, denoted $\Omega$, is the set of all possible outcomes of an observable random variable
+
+> - Do not conflate a realization of a random variable with the function that generated it
+> - By convention, a capital letter, $X$, indicates a random variable
+and its lower-case counterpart, $x$, indicates a realization of $X$
+
+## First Roll in a Frame of Bowling
+
+- Each frame in bowling starts with $n=10$ pins
+- You get 2 rolls per frame to knock down pins
+
+> - What is $\Omega$ for your first roll?
+> - [Hohn (2009)](https://digitalcommons.wku.edu/cgi/viewcontent.cgi?article=1084&context=theses) 
+  discusses a few distributions for the probability of knocking down $X\geq 0$ out of $n\geq X$ pins, including $\Pr\left(\left.x\right|n\right)=\frac{\mathcal{F}\left(x\right)}{-1 + \mathcal{F}\left(n+2\right)}$
+where $\mathcal{F}\left(x\right)$ is the $x$-th Fibonacci number, i.e. $\mathcal{F}\left(0\right)=1$,
+$\mathcal{F}\left(1\right)=1$, and otherwise $\mathcal{F}\left(x\right)=\mathcal{F}\left(x-1\right)+\mathcal{F}\left(x-2\right)$
+> - First 13 Fibonacci numbers are 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, and 233
+> - Sum of the first 11 Fibonacci numbers is 232
+
+## `source("bowling.R")` from Clone of Git Repo {.build}
+
+```{r, FandPr}
+# computes the x-th Fibonacci number without recursion and with vectorization
+F <- function(x) {
+  sqrt_5 <- sqrt(5) # defined once, used twice
+  golden_ratio <- (1 + sqrt_5) / 2
+  return(round(golden_ratio ^ (x + 1) / sqrt_5))
+}
+# probability of knocking down x out of n pins
+Pr <- function(x, n = 10) return( ifelse(x > n, 0, F(x)) / (-1 + F(n + 2)) )
+
+Omega <- 0:10 # 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+names(Omega) <- as.character(Omega)
+round(c(Pr(Omega), total = sum(Pr(Omega))), digits = 4)
+
+x <- sample(Omega, size = 1, prob = Pr(Omega)) # realization of random variable
+```
+
+## Second Roll in a Frame of Bowling
+
+> - How would you compute the probability of knocking down the remaining pins on 
+  your second roll?
+> - Let $X_{1}$ and $X_{2}$ respectively be the number of pins knocked down on 
+  the first and second rolls of a frame of bowling. What function yields the
+  probability of knocking down $x_2$ pins on your second roll?
+
+> - $\Pr\left(\left.x_{2}\right|n = 10 - x_1\right)=\frac{\mathcal{F}\left(x_{2}\right)}{-1 + \mathcal{F}\left(10-x_{1}+2\right)}\times\mathbb{I}\left\{ x_{2}\leq10-x_{1}\right\}$
+> - $\mathbb{I}\left\{ \cdot\right\}$ is an "indicator function" that equals $1$ if it is true and $0$ if it is false
+> - $\Pr\left(\left.x_{2}\right|n = 10 - x_1\right)$ is a CONDITIONAL probability that depends on the
+  realization of $x_1$
+
+## Multiplication Rule
+
+- In R, `TRUE` maps to $1$ and `FALSE` maps to $0$ when doing arithmetic operations
+```{r, AND}
+(TRUE & TRUE) == (TRUE * TRUE)
+(TRUE & FALSE) == (TRUE * FALSE)
+```
+- Can generalize to probabilities on the $[0,1]$ interval to compute the probability
+  that two (or more) propositions are true simultaneously
+- $\bigcap$ reads as "and". __General Multiplication Rule__: $\Pr\left(A\bigcap B\right)=\Pr\left(B\right)\times\Pr\left(\left.A\right|B\right)=\Pr\left(A\right)\times\Pr\left(\left.B\right|A\right)$
+  
+## Independence
+
+- Loosely, $A$ and $B$ are independent propositions if $A$ being true or false tells
+  us nothing about the probability that $B$ is true (and vice versa)
+- Formally, $A$ and $B$ are independent iff $\Pr\left(\left.A\right|B\right)=\Pr\left(A\right)$
+  (and $\Pr\left(\left.B\right|A\right)=\Pr\left(B\right)$). In that case, 
+  $\Pr\left(A\bigcap B\right)=\Pr\left(A\right)\times\Pr\left(B\right)$.
+- Why is it reasonable to think
+    - Two rolls in the same frame are not independent?
+    - Two rolls in different frames are independent?
+    - Rolls by two different people are independent regardless of whether they are in the same frame?
+
+> - What is the probability of obtaining a turkey (3 consecutive strikes)?
+> - What is the probability of knocking down $9$ pins on the first roll and $1$ pin 
+  on the second roll?
+  
+## Joint Probability of Two Rolls in Bowling
+
+- How to obtain the joint probability, $\Pr\left(\left.x_{1}\bigcap x_{2}\right|n=10\right)$, in general?
+
+$$\begin{eqnarray*}
+\Pr\left(\left.x_{1}\bigcap x_{2}\right|n=10\right) & = & \Pr\left(\left.x_{1}\right|n=10\right)\times\Pr\left(\left.x_{2}\right|n = 10 - x_1\right)\\
+ & = & \frac{\mathcal{F}\left(x_{1}\right) \times \mathcal{F}\left(x_{2}\right) \times \mathbb{I}\left\{ x_{2}\leq10-x_{1}\right\}}{\left(-1+\mathcal{F}\left(10+2\right)\right)\times
+ \left(-1 + \mathcal{F}\left(10-x_{1}+2\right)\right)}
+\end{eqnarray*}$$
+
+```{r, joint}
+joint_Pr <- matrix(0, nrow = length(Omega), ncol = length(Omega))
+rownames(joint_Pr) <- colnames(joint_Pr) <- as.character(Omega)
+for (x1 in Omega) { # already created by source("bowling.R")
+  Pr_x1 <- Pr(x1, n = 10)
+  for (x2 in 0:(10 - x1))
+    joint_Pr[x1 + 1, x2 + 1] <- Pr_x1 * Pr(x2, n = 10 - x1)
+}
+sum(joint_Pr) # that sums to 1
+```
+
+## `joint_Pr`: Row index is roll 1, Column is roll 2 {.smaller}
+
+```{r, size='footnotesize', echo = FALSE, message = FALSE}
+library(kableExtra)
+library(dplyr)
+options("kableExtra.html.bsTable" = TRUE)
+options(scipen = 5)
+tmp <- as.data.frame(joint_Pr)
+for (i in 1:ncol(tmp)) 
+  tmp[,i] <- cell_spec(round(tmp[,i], digits = 6), "html", bold = tmp[,i] == 0,
+                       color = ifelse(tmp[,i] == 0, "red", "black"))
+kable(tmp, digits = 5, align = 'c', escape = FALSE) %>%
+    kable_styling("striped", full_width = FALSE)
+```
+
+## Addition Rule
+
+- What is the probability you fail to get a strike either on this frame or the next?
+
+> - Can generalize Aristotelian logic to probabilities on the $[0,1]$ interval to compute the probability
+  that one of two (or more) propositions is true
+> - $\bigcup$ is read as "or". __General Addition Rule__: $\Pr\left(A\bigcup B\right)=\Pr\left(A\right)+\Pr\left(B\right)-\Pr\left(A\bigcap B\right)$
+> - If $\Pr\left(A\bigcap B\right) = 0$, $A$ and $B$ are mutually exclusive (disjoint)
+
+## What is the probability that $X_2 = 9$?  {.smaller}
+
+```{r, size='footnotesize', echo = FALSE}
+tmp <- as.data.frame(joint_Pr)
+for (i in 1:ncol(tmp)) 
+  tmp[,i] <- cell_spec(round(tmp[,i], digits = 6), "html", bold = tmp[,i] == 0,
+                       color = ifelse(tmp[,i] == 0, "red", "black"))
+kable(tmp, digits = 5, align = 'c', escape = FALSE) %>%
+    kable_styling("striped", full_width = FALSE)
+```
+
+
+## Marginal Distribution of Second Roll in Bowling
+
+
+- How to obtain $\Pr\left(x_{2}\right)$ irrespective of $x_{1}$?
+- Since events in the first roll are mutually exclusive, use the simplified
+form of the General Addition Rule to "marginalize":
+$$\begin{eqnarray*}
+\Pr\left(x_{2}\right) & = & 
+\sum_{x = 0}^{10}\Pr\left(\left.X_1 = x\bigcap X_2 = x_{2}\right|n=10\right)\\
+ & = & \sum_{x = 0}^{10}
+ \Pr\left(\left.x\right|n=10\right) \times \Pr\left(\left.x_{2}\right|n = 10 - x\right)
+\end{eqnarray*}$$
+```{r, marginal, size='footnotesize', comment=NA}
+round(rbind(Pr_X1 = Pr(Omega), margin1 = rowSums(joint_Pr), margin2 = colSums(joint_Pr)), 3)
+```
+
+## Marginal, Conditional, and Joint Probabilities
+
+> - To compose a joint (in this case bivariate) probability, MULTIPLY a marginal probability by
+  a conditional probability
+> - To decompose a joint (in this case bivariate) probability, ADD the relevant joint probabilities
+  to obtain a marginal probability
+> - To obtain a conditional probability, DIVIDE the relevant joint probability by the relevant
+  marginal probability since
+$$\Pr\left(A\bigcap B\right)=\Pr\left(B\right)\times\Pr\left(\left.A\right|B\right)=\Pr\left(A\right)\times\Pr\left(\left.B\right|A\right) \implies$$
+$$\Pr\left(\left.A\right|B\right)= \frac{\Pr\left(A\right)\times\Pr\left(\left.B\right|A\right)}{\Pr\left(B\right)} \mbox{ if } \Pr\left(B\right) > 0$$
+> - This is Bayes' Rule  
+> - What is an expression for $\Pr\left(\left.X_1 = 3\right|X_2 = 4\right)$ in bowling?
+
+## Conditioning on $X_2 = 4$ in Bowling {.smaller}
+
+```{r, size='footnotesize', echo = FALSE}
+tmp <- as.data.frame(joint_Pr)
+for (i in 1:ncol(tmp)) 
+  tmp[,i] <- cell_spec(round(tmp[,i], digits = 6), "html", bold = tmp[,i] == 0,
+                       color = ifelse(tmp[,i] == 0, "red", 
+                                      ifelse(i == 5, "black", "blue")))
+kable(tmp, digits = 5, align = 'c', escape = FALSE) %>%
+    kable_styling("striped", full_width = FALSE)
+```
+
+## Example of Bayes' Rule
+
+
+```{r}
+joint_Pr["3", "4"] / sum(joint_Pr[ , "4"])
+```
+- Bayesians generalize this by taking $A$ to be "beliefs about whatever you do not know" and $B$ to be whatever you do know in 
+$$\Pr\left(\left.A\right|B\right)= \frac{\Pr\left(A\right)\times\Pr\left(\left.B\right|A\right)}{\Pr\left(B\right)} \mbox{ if } \Pr\left(B\right) > 0$$
+- Frequentists accept the validity Bayes' Rule but object to using the language of probability to describe 
+  beliefs about unknown propositions and insist that probability is a property of a process 
+  that can be defined as a limit
+$$\Pr\left(A\right) = \lim_{S\uparrow\infty} 
+\frac{\mbox{times that } A \mbox{ occurs in } S \mbox{ independent randomizations}}{S}$$
+
+## Expectation of a Discrete Random Variable {.build}
+
+```{r}
+round(Pr(Omega), digits = 4)  # What is the mode, median, and expectation of X1?
+```
+
+> - The MODE is the element of $\Omega$ with the highest probability ($10$ here)
+> - The MEDIAN is the smallest element of $\Omega$ such that AT LEAST 
+half of the cumulative probability is less than or equal to that element ($9$ here)
+> - EXPECTATION of a discrete random variable $X$ is defined as
+$$\mathbb{E}X = \sum_{x\in\Omega}\left[x\times\Pr\left(x\right)\right] \equiv \mu$$
+> - Expectation is just a probability-weighted sum ($8.431$ here)
+
+## Expectations of Functions {.build}
+
+- Let $g\left(X\right)$ be a function of $X$ whose expectation (if it exists) is
+    * 
+    * Discrete $\Omega$: $\mathbb{E}g\left(X\right) = \sum_{x\in\Omega}\left[g\left(x\right)\times\Pr\left(x\right)\right]$
+    * Continuous $\Omega$: $\mathbb{E}g\left(X\right) = \int_\Omega g\left(x\right)f\left(x\right) dx$ where $f\left(x\right)$ is a PDF
+    * General: $\mathbb{E}g\left(X\right) = \lim_{S \uparrow \infty} \frac{1}{S}\sum_{s = 1}^S g\left(\widetilde{x}_s\right)$ where $\widetilde{x}_s$ is the $s$-th iid realization of $X$
+    
+> - If $g\left(X\right)=\left(X-\mu\right)^{2}$, the VARIANCE of $X$ is defined as $\mathbb{E}\left[\left(X-\mu\right)^{2}\right]=\sigma^{2}$
+> - $\sigma=\sqrt[+]{\sigma^{2}}$ is the standard deviation but not an expectation of a function
+> - If $g\left(X\right)=-\log\left(\Pr\left(X\right)\right)$, the ENTROPY of $X$ is $\mathbb{E}\left[-\log\left(\Pr\left(X\right)\right)\right],$ which reaches its upper bound of
+`log(length(Omega))` when $\Pr\left(x\right)$ is constant
+```{r}
+sum(-log(joint_Pr) * joint_Pr, na.rm = TRUE) # entropy
+```
+
+## Decision Theory
+
+- It is often sensible to make a decision that maximizes EXPECTED utility:
+
+    1. Enumerate $D$ possible decisions $\{d_1, d_2, \dots, d_D\}$ that are under consideration
+    2. Define a utility function $g\left(d,\dots\right)$ that also depends on unknown (and 
+      maybe some known) quantities
+    3. Obtain / update your conditional probability distribution for all the unknowns given all
+      the knowns using Bayes' Rule
+    4. Evaluate $\mathbb{E}g\left(d,\dots\right)$ for each of the $D$ decisions
+    5. Choose the decision that has the highest value in (4)
+
+- This is a very intuitive / useful procedure but you have to use Bayes' Rule in (3)
+- Also, whoever is deciding has to specify (1) and (2)
+
+## Sampling without Replacement {.build}
+
+- The binomial distribution corresponds to sampling WITH replacement
+- The hypergeometric distribution corresponds to sampling WITHOUT replacement and
+  has PMF $\Pr\left(\left.x\right|N,K,n\right) =
+  {{K \choose x}{N - K \choose n - x}} / {{N \choose n}}$ where
+  
+    - $N$ is the (finite) size of the set being drawn from
+    - $K$ is the number of successes in that finite set
+    - $n$ is the number of times you draw without replacement
+    - ${a \choose b} = \frac{a!}{b!\left(a - b\right)!}$, which is defined as zero
+      if $a < b$
+
+> - What is the probability of being dealt $21$ in blackjack?
+```{r}
+dhyper <- function(x, N, K, n) choose(K, x) * choose(N - K, n - x) / choose(N, n)
+dhyper(x = 1, N = 52, K = 16, n = 1) * # probability of a 10, J, Q, or K
+dhyper(x = 1, N = 51, K =  4, n = 1) * # probability of an Ace given a non-Ace already
+2                                      # because the Ace can come either second or first
+```
+
