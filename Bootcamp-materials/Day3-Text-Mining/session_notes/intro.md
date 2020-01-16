@@ -19,6 +19,8 @@
 ### Typical NLP Curriculum
 ![text analysis roadmap](images/grimmer_text_analysis_roadmap.png)
 
+A better map is presented by ![Grimmer and Stewart 2013](http://stanford.edu/~jgrimmer/tad2.pdf). This does not include the recent "NLP" work though.
+
 ### Today's plan
 - Working with Text in Python with Jupyter Notebooks
 - Common pre-processing Steps
@@ -38,6 +40,10 @@
 - Quantification of text
   - Bag of words
 - Metrics for text
-  - Term Frequency Inverse Document Frequency
+  - Term Frequency Inverse Document Frequency (TF-IDF)
 - "Distance" between documents
   - Cosine similarity
+
+### Today's dataset
+[Indeed.com](https://indeed.com) helps candidates find job postings
+![indeed search screen shot](images/indeed_screenshot.png)

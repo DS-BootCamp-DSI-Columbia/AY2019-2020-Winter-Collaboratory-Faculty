@@ -27,7 +27,7 @@ This interactive course covers the basics of text mining using Python. Unstructu
 10:00am - 11:00am Lecture:
 
 * [Introduction to text mining](session_notes/intro.md)
-* Regular Expression and String Manipulation in Python
+* [Regular Expression and String Manipulation in Python](session_notess/python_str_manipulate.md)
 * Common pre-processing steps for text
 
 11:00am - 12:00pm Lab
