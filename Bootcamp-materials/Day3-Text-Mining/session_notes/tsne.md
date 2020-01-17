@@ -11,9 +11,10 @@ top_tfidf = tfidf_norm[top_terms]
 
 Cluster using t-SNE
 ```
+import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 
-red_tfidf = TSNE(n_components=2).fit_transform(tfidf_norm)
+red_tfidf = TSNE(n_components=2).fit_transform(top_tfidf)
 
 colors = ['red', 'blue']
 subplots = []
@@ -32,5 +33,4 @@ for title in job_titles:
 
 # Save the different methods into different plots
 plt.show()
-plt.close()
 ```
