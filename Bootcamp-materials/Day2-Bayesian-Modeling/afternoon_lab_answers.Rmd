@@ -1,0 +1,119 @@
+---
+title: "Stan Language Lab Answers"
+author: "Ben Goodrich"
+editor_options:
+  chunk_output_type: console
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{amssymb}
+   - \usepackage{color}
+output: 
+  html_document: 
+    number_sections: yes
+---
+
+The questions and additional context are also [available](afternoon_lab.Rmd).
+
+```{r, message = FALSE}
+US_Open2010 <- readr::read_csv("US_Open2010.csv")
+```
+
+# Simplest Model
+
+## Simplest `model` Block
+
+```{r, comment = "", echo = FALSE}
+writeLines(readLines("simplest.stan"))
+```
+
+## Running the Simplest Stan Program
+
+Among professional bowlers, a strike is the most common outcome and they almost never roll a gutter
+ball or only knock down a few pins on their first roll. Thus, the $\mathbf{a}$ vector should be
+of size $11$, positive, and generally increasing. Perhaps something like
+
+```{r}
+a <- c(2, 1, 1, 1, 1, 2, 4, 8, 16, 32, 64)
+```
+which implies a prior expectation for $\boldsymbol{\pi}$ of
+
+```{r}
+round(a / sum(a), digits = 3)
+```
+
+Then, we can update our prior beliefs about $\boldsymbol{\pi}$ by conditioning on the data
+```{r, message = FALSE}
+library(rstan)
+options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+
+post <- stan("simplest.stan", data = list(N = nrow(US_Open2010), roll_1 = US_Open2010$roll_1 + 1,
+                                          roll_2 = US_Open2010$roll_2 + 1, a = a), refresh = 0)
+print(post, pars = "pi", digits = 3)
+```
+
+## Simplest `generated quantities` Block
+
+The `generated quantities` block is included in simplest.stan .
+
+# Intermediate Model
+
+## Intermediate `model` Block
+
+```{r, comment = "", echo = FALSE}
+writeLines(readLines("intermediate.stan"))
+```
+
+## Intermediate `functions` and `generated quantities` Block
+
+The game_rng.stan file can be written as
+
+```{r, comment = "", echo = FALSE}
+writeLines(readLines("game_rng.stan"))
+```
+
+## Running the Intermediate Stan Program
+
+```{r}
+post <- stan("intermediate.stan", data = list(N = nrow(US_Open2010), roll_1 = US_Open2010$roll_1 + 1,
+                                              roll_2 = US_Open2010$roll_2 + 1, a = a), refresh = 0)
+post
+```
+The posterior distribution of a professional bowler's score has a mean and median near $200$
+with a standard deviation of about $26$. This is unreasonably low for a professional bowler, so
+what do you think is wrong about this model?
+
+# Multilevel Stan Program
+
+## Multilevel Stan Program
+
+```{r, comment = "", echo = FALSE}
+writeLines(readLines("multilevel.stan"))
+```
+
+## Running the Multilevel Stan Program
+
+```{r, multilevel, cache = TRUE, warning = FALSE, message = FALSE}
+# drop subsequent rounds
+US_Open2010 <- US_Open2010[!duplicated(paste0(US_Open2010$Bowler, "_", US_Open2010$Frame)), ]
+J <- length(unique(US_Open2010$Bowler)) # number of bowlers
+roll_1 <- t(matrix(US_Open2010$roll_1 + 1, nrow = 10, ncol = J))
+roll_2 <- t(matrix(US_Open2010$roll_2 + 1, nrow = 10, ncol = J))
+
+post <- stan("multilevel.stan",
+             data = list(J = J, roll_1 = roll_1, roll_2 = roll_2, a = a, rate = 1), 
+             refresh = 0, control = list(adapt_delta = 0.9))
+```
+Setting `adapt_delta` to $0.9$ (its default value is $0.8$) reduces the
+warnings about divergent transitions, which are important. For more information, see this 
+[FAQ](https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup).
+
+```{r}
+winner <- rstan::extract(post, pars = "winner")[[1]]
+```
+is a vector of size $4000$ of the bowler with the highest score. Based on
+```{r}
+prop.table(table(winner))
+```
+bowler number 16 has the highest probability of winning the bowling tournament,
+but only about $0.15$
