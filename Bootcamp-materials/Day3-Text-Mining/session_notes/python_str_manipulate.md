@@ -85,5 +85,15 @@ The data structure:
 Try to answer the following:
 - How many job descriptions are there in this dataset?
 - What was the query used to get the data?
-- How many job descriptions mention "python" or "R"?
+- How many job descriptions mention "python" or "R" respectively?
   - Don't try to be perfect here, we will explore this further
+  - Hints:
+    - write a loop then recycle your previous work!
+      ```
+      results = []
+      for jd in indeed['job_descriptions']:
+          results.append(YOUR_OUTPUT)
+
+      results
+      ```
+    - what does `re.findall` output if there is no match?

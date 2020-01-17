@@ -24,20 +24,18 @@ This interactive course covers the basics of text mining using Python. Unstructu
 
 9:00am - 10:00am: Morning coffee
 
-10:00am - 11:00am Lecture:
+10:00am - 12:00am Lecture + Lab:
 
 * [Introduction to text mining](session_notes/intro.md)
-* [Regular Expression and String Manipulation in Python](session_notess/python_str_manipulate.md)
-* Common pre-processing steps for text
-
-11:00am - 12:00pm Lab
+* [Regular Expression and String Manipulation in Python](session_notes/python_str_manipulate.md)
+* [Common pre-processing steps for text](session_notes/preprocess.md)
 
 12:00pm - 1:00pm Lunch on own
 
 1:00pm - 1:45pm Lecture:
 
-* Bag of words
-* Term Frequency, Inverse Term Frequency (TF-IDF)
+* [Bag of words](session_notes/bow.md)
+* [Term Frequency, Inverse Term Frequency (TF-IDF)](session_notes/tfidf.md)
 
 1:45pm - 2:30pm Lab
 
