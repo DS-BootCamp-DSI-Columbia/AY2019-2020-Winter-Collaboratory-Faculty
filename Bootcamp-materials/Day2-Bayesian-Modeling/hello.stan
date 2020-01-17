@@ -12,9 +12,9 @@ functions {
     int y = x_i[2];
     real a_star = x_r[1] + y;
     real b_star = x_r[2] - y + n;
-    if (pi <= 0.5) return pi ^ (a_star - 1) * (1 - pi) ^ (b_star + 1);
+    if (pi <= 0.5) return pi ^ (a_star - 1) * (1 - pi) ^ (b_star - 1);
     // else if pi > 0.5, utilize pi_c to avoid numerical cancellation
-    return pi ^ (a_star - 1) * pi_c ^ (b_star + 1);
+    return pi ^ (a_star - 1) * pi_c ^ (b_star - 1);
   }
 }
 

@@ -1,0 +1,373 @@
+---
+title: "Bayesian Probability Lab Answers"
+author: "Ben Goodrich"
+editor_options:
+  chunk_output_type: console
+output: 
+  html_document: 
+    number_sections: yes
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(crayon)
+card <- function(value = c("A", as.character(2:9), "10", "J", "Q", "K"), 
+                 suit = c("S", "H", "D", "C"),
+                 style = NULL) {
+  value <- match.arg(value)
+  suit <- match.arg(suit)
+  
+  deck <- list(S = c("\U1F0A1", "\U1F0A2", "\U1F0A3", "\U1F0A4", "\U1F0A5", "\U1F0A6", "\U1F0A7",
+                     "\U1F0A8", "\U1F0A9", "\U1F0AA", "\U1F0AB", "\U1F0AD", "\U1F0AE"),
+               H = c("\U1F0B1", "\U1F0B2", "\U1F0B3", "\U1F0B4", "\U1F0B5", "\U1F0B6", "\U1F0B7",
+                     "\U1F0B8", "\U1F0B9", "\U1F0BA", "\U1F0BB", "\U1F0BD", "\U1F0BE"),
+               D = c("\U1F0C1", "\U1F0C2", "\U1F0C3", "\U1F0C4", "\U1F0C5", "\U1F0C6", "\U1F0C7",
+                     "\U1F0C8", "\U1F0C9", "\U1F0CA", "\U1F0CB", "\U1F0CD", "\U1F0CE"),
+               C = c("\U1F0D1", "\U1F0D2", "\U1F0D3", "\U1F0D4", "\U1F0D5", "\U1F0D6", "\U1F0D7",
+                     "\U1F0D8", "\U1F0D9", "\U1F0DA", "\U1F0DB", "\U1F0DD", "\U1F0DE"))
+               
+  value <- switch(value,
+                  "A" = 1L,
+                  "10" = 10L,
+                  "J" = 11L,
+                  "Q" = 12L,
+                  "K" = 13L,
+                  as.integer(value))
+  if (is.null(style)) style <- if (suit %in% c("H", "D")) red else reset
+  return(fansi::sgr_to_html(style(deck[[suit]][value])))
+}
+```
+
+The questions and additional context are also [available](morning_lab.Rmd).
+
+# Byron Kaverman's Decision
+
+## Prior
+
+The _ex ante_ probability of being dealt `r card("A", "C")` `r card("5", "C")` can be calculated as
+
+$$\frac{1}{52} \times \frac{1}{51} \times 2 = \frac{1}{1326}$$
+
+because there is a $1$ in $52$ chance of being dealt `r card("A", "C")`, which leaves $51$ cards
+left in the deck including the only `r card("5", "C")`. But the order that these two cards are
+dealt can also be reversed, which accounts for the factor of $2$. Alternatively, any two-card
+hand has a 
+
+$$\frac{1}{52 \choose 2} = \frac{2!\left(52 - 2\right)!}{52!} = \frac{2}{52\times 51} = \frac{1}{1326}$$
+
+probability of being dealt.
+
+
+## Posterior
+
+If $A$ represents the event that Kaverman is dealt dealt `r card("A", "C")` `r card("5", "C")`, we know
+from the previous problem that its prior probability is
+
+$$\Pr\left(A\right) = \frac{1}{1326}$$
+
+Then, if $B$ represents the event that Kaverman goes all-in, we can write the probability of that Kaverman 
+goes all-in with `r card("A", "C")` `r card("5", "C")` as
+
+$$\Pr\left(B \mid A\right) = 1$$
+
+Finally, we need the denominator of Bayes' Rule, which is the _ex ante_ probability of going all-in, which can
+be written as
+
+$$\Pr\left(B\right) = \frac{138}{1326}$$
+
+because there are $138$ hands enumerated where the expectation of going all-in is better than the expectation
+of folding for someone in Kaverman's situation. Thus, Bayes' Rule simplifies to
+
+$$\Pr\left(A \mid B\right) = \frac{\Pr\left(A \right) \Pr\left(B \mid A \right)}{\Pr\left(B \right)} = 
+\frac{1 / 1326 \times 1}{138 / 1326} = \frac{1}{138} \approx 0.007$$
+
+Due to the fact that we are essentially dealing with discrete uniform distributions, you could have arrived at 
+$\Pr\left(A \mid B\right) = \frac{1}{138}$ by inspection, as opposed to explicitly evaluating the right-hand side 
+of Bayes' Rule. But it is nice to know that this shortcut that is applicable in the discrete uniform case is 
+actually a special case of Bayes' Rule, which as we saw in the bowling example does not rely on uniformity.
+
+# Fedor Holz's First Decision
+
+## Probability of Three of a Kind
+
+To answer this question, we can use the function from the previous lecture to evaluate the PMF of the 
+hypergeometric distribution:
+```{r}
+dhyper <- function(x, N, K, n) choose(K, x) * choose(N - K, n - x) / choose(N, n)
+```
+
+We are looking for the probability that among the five face-up community cards in the middle, there is one 10
+(so that Holz makes three of a kind) and, _given that there is a 10 among those five cards_, the probability 
+that Kaverman does not make a higher three of a kind. After pulling out Kaverman's two cards and Holz's two cards, 
+there are $48$ cards left in the deck, so this probability is given by
+
+```{r}
+dhyper(x = 1, N = 48, K = 2, n = 5) *   # probability Holz makes three of a kind
+  (1 - dhyper(1, N = 47, K = 2, n = 4)) # conditional probability Kaverman does not make three of a kind
+```
+
+So, in this situation Kaverman's hand would be a strong favorite to beat Holz's hand, and this conclusion
+would still hold if we were more rigorous about accounting for the tiny probability that one or both of
+their hands ends up being better than three of a kind.
+
+## Probability of Trailing
+
+This question can be answered just by counting up the proportion of hands that Kaverman would go all-in with
+that are a favorite against Holz's `r card("10", "S")` `r card("10", "C")`. To do that, we eliminate hands
+involving the `r card("10", "S")` or `r card("10", "C")` from the $138$ hands that Kaverman would go all-in 
+with, leaving 
+
+* Big pairs (Js or better), of which there are four pairs $\times$ six suit combinations for 24 hands:
+    * `r card("A", "S")` `r card("A", "H")`, `r card("A", "S")` `r card("A", "D")`, `r card("A", "S")` `r card("A", "C")`,
+      `r card("A", "H")` `r card("A", "D")`, `r card("A", "H")` `r card("A", "C")`, `r card("A", "D")` `r card("A", "C")`
+    * `r card("K", "S")` `r card("K", "H")`, `r card("K", "S")` `r card("K", "D")`, `r card("K", "S")` `r card("K", "C")`,
+      `r card("K", "H")` `r card("K", "D")`, `r card("K", "H")` `r card("K", "C")`, `r card("K", "D")` `r card("K", "C")`  
+    * `r card("Q", "S")` `r card("Q", "H")`, `r card("Q", "S")` `r card("Q", "D")`, `r card("Q", "S")` `r card("Q", "C")`,
+      `r card("Q", "H")` `r card("Q", "D")`, `r card("Q", "H")` `r card("Q", "C")`, `r card("Q", "D")` `r card("Q", "C")`
+    * `r card("J", "S")` `r card("J", "H")`, `r card("J", "S")` `r card("J", "D")`, `r card("J", "S")` `r card("J", "C")`,
+      `r card("J", "H")` `r card("J", "D")`, `r card("J", "H")` `r card("J", "C")`, `r card("J", "D")` `r card("J", "C")`
+* A pair of 10s, of which there is only $1$ combination left:
+    * `r card("10", "H")` `r card("10", "D")`
+* Medium pairs (6s or better), of which there are four pairs $\times$ six suit combinations for 24 hands:
+    * `r card("9", "S")` `r card("9", "H")`, `r card("9", "S")` `r card("9", "D")`, `r card("9", "S")` `r card("9", "C")`,
+      `r card("9", "H")` `r card("9", "D")`, `r card("9", "H")` `r card("9", "C")`, `r card("9", "D")` `r card("9", "C")`,  
+    * `r card("8", "S")` `r card("8", "H")`, `r card("8", "S")` `r card("8", "D")`, `r card("8", "S")` `r card("8", "C")`,
+      `r card("8", "H")` `r card("8", "D")`, `r card("8", "H")` `r card("8", "C")`, `r card("8", "D")` `r card("8", "C")`,
+    * `r card("7", "S")` `r card("7", "H")`, `r card("7", "S")` `r card("7", "D")`, `r card("7", "S")` `r card("7", "C")`,
+      `r card("7", "H")` `r card("7", "D")`, `r card("7", "H")` `r card("7", "C")`, `r card("7", "D")` `r card("7", "C")`,  
+    * `r card("6", "S")` `r card("6", "H")`, `r card("6", "S")` `r card("6", "D")`, `r card("6", "S")` `r card("6", "C")`,
+      `r card("6", "H")` `r card("6", "D")`, `r card("6", "H")` `r card("6", "C")`, `r card("6", "D")` `r card("6", "C")`
+* Ace and at least a nine of the same suit, of which there are five intersections for each of the red suits 
+  and four remaining intersections for each of the black suits for a total of 18 hands:
+    * `r card("A", "S")` `r card("K", "S")`, `r card("A", "S")` `r card("Q", "S")`, `r card("A", "S")` `r card("J", "S")`,
+      `r card("A", "S")` `r card("9", "S")`
+    * `r card("A", "H")` `r card("K", "H")`, `r card("A", "H")` `r card("Q", "H")`, `r card("A", "H")` `r card("J", "H")`,
+      `r card("A", "H")` `r card("10", "H")`, `r card("A", "H")` `r card("9", "H")`
+    * `r card("A", "D")` `r card("K", "D")`, `r card("A", "D")` `r card("Q", "D")`,
+      `r card("A", "D")` `r card("J", "D")`, `r card("A", "D")` `r card("10", "D")`, `r card("A", "D")` `r card("9", "D")`
+    * `r card("A", "C")` `r card("K", "C")`, `r card("A", "C")` `r card("Q", "C")`, `r card("A", "C")` `r card("J", "C")`,
+      `r card("A", "C")` `r card("9", "C")`
+* Ace and a five of the same suit, for any of the four suits: `r card("A", "S")` `r card("5", "S")`,
+  `r card("A", "H")` `r card("5", "H")`, `r card("A", "D")` `r card("5", "D")`, `r card("A", "C")` `r card("5", "C")`
+* Both cards at least 10 of the same suit, of which there are six intersections for each of the red suits
+  and three remaining intersections for each of the black suits, leaving 18 hands:
+    * `r card("K", "S")` `r card("Q", "S")`, `r card("K", "S")` `r card("J", "S")`,
+      `r card("Q", "S")` `r card("J", "S")`
+    * `r card("K", "H")` `r card("Q", "H")`, `r card("K", "H")` `r card("J", "H")`, `r card("K", "H")` `r card("10", "H")`,
+      `r card("Q", "H")` `r card("J", "H")`, `r card("Q", "H")` `r card("10", "H")`, `r card("J", "H")` `r card("10", "H")`  
+    * `r card("K", "D")` `r card("Q", "D")`, `r card("K", "D")` `r card("J", "D")`, `r card("K", "D")` `r card("10", "D")`,
+      `r card("Q", "D")` `r card("J", "D")`, `r card("Q", "D")` `r card("10", "D")`, `r card("J", "D")` `r card("10", "D")` 
+    * `r card("K", "C")` `r card("Q", "C")`, `r card("K", "C")` `r card("J", "C")`,
+      `r card("Q", "C")` `r card("J", "C")`
+* Ace and at least a Jack of different suit, of which there are six intersections $\times {4 \choose 2}$ suits for 36 hands:
+    * `r card("A", "S")` `r card("K", "H")`, `r card("A", "S")` `r card("K", "D")`, `r card("A", "S")` `r card("K", "C")`
+    * `r card("A", "S")` `r card("Q", "H")`, `r card("A", "S")` `r card("Q", "D")`, `r card("A", "S")` `r card("Q", "C")`
+    * `r card("A", "S")` `r card("J", "H")`, `r card("A", "S")` `r card("J", "D")`, `r card("A", "S")` `r card("J", "C")`
+    * `r card("A", "H")` `r card("K", "S")`, `r card("A", "H")` `r card("K", "D")`, `r card("A", "H")` `r card("K", "C")`  
+    * `r card("A", "H")` `r card("Q", "S")`, `r card("A", "H")` `r card("Q", "D")`, `r card("A", "H")` `r card("Q", "C")`
+    * `r card("A", "H")` `r card("J", "S")`, `r card("A", "H")` `r card("J", "D")`, `r card("A", "H")` `r card("J", "C")`
+    * `r card("A", "D")` `r card("K", "S")`, `r card("A", "D")` `r card("K", "H")`, `r card("A", "D")` `r card("K", "C")`
+    * `r card("A", "D")` `r card("Q", "S")`, `r card("A", "D")` `r card("Q", "H")`, `r card("A", "D")` `r card("Q", "C")`  
+    * `r card("A", "D")` `r card("J", "S")`, `r card("A", "D")` `r card("J", "H")`, `r card("A", "D")` `r card("J", "C")`
+    * `r card("A", "C")` `r card("K", "S")`, `r card("A", "C")` `r card("K", "H")`, `r card("A", "C")` `r card("K", "D")`
+    * `r card("A", "C")` `r card("Q", "S")`, `r card("A", "C")` `r card("Q", "H")`, `r card("A", "C")` `r card("Q", "D")`
+    * `r card("A", "C")` `r card("J", "S")`, `r card("A", "C")` `r card("J", "H")`, `r card("A", "C")` `r card("J", "D")`
+
+which amounts to $125$ hands that Kaverman could have, of which Kaverman would be a favorite only if he had one of the
+$24$ hands with a big pair. Also, neither is a favorite if Kaverman has `r card("10", "H")` `r card("10", "D")`. So, 
+the probability that Holz's hand is not a favorite to beat Kaverman's hand is
+
+$$\frac{25}{125} = \frac{1}{5}$$
+
+Excluding some minor strategy considerations, this is essentially why the commentator says at 0:54 of the video that 
+Holz "is obviously calling".
+
+# Rick Salomon's Decision
+
+We saw above that Kaverman would go all-in with approximately $10.4\%$ hands he could have been dealt. By calling,
+Holz is essentially saying his hand is better than the average of those $10.4\%$ hands, which is to say that
+Holz's hand is roughly among the best $5.2\%$ of hands he could have been dealt. By subsquently going all-in
+Salomon is essentially saying that his hand is better than the average of the hands that Kaverman and
+Holz could both have, given that Kaverman went all-in and Holz called. Since there are three players involved,
+an exact calculation could get unnecessarily complicated, but Salomon is primarily worried about Holz calling
+his $18,800,000$ chip raise over Kaverman's original $8,025,000$ chip bet. Salomon would be comfortable with that 
+if his hand were better than the average of the $5.2\%$ of hands Holz would call Kaverman's all-in bet with. Thus, Salomon
+is essentially saying that his hand is among the best $2.6\%$ hands he could have been dealt, which is
+$34$ or $35$ hands out of ${52 \choose 2} = 1326$. Not coincidentally, that is about equal to the $24$ hands
+with a pair of Aces, Kings, Queens, or Jacks, plus the $12$ combinations of an Ace and a King that Salomon
+could have been dealt.
+
+# Fedor Holz's Second Decision
+
+## Beating a King that is not `r card("K", "H")`
+
+To answer this question, we need to again evaluate the PMF of the hypergeometric distribution. It is easier
+to determine the probability that Salomon's hand beats Holz's hand and to subtract that from one. The (most)
+relevant considerations are 
+
+* The probability that Salomon improves to one pair when the five community cards include exactly one Ace or one King 
+```{r}
+Pr_1pair <- dhyper(x = 1, N = 48, K = 6, n = 5)
+```
+* The probability that Salomon improves to two pair when the five community cards include exactly one Ace and one King
+```{r}
+Pr_2pair <- dhyper(x = 1, N = 48, K = 3, n = 5) * dhyper(x = 1, N = 47, K = 3, n = 4)
+```
+* The probability that Salomon improves to three of a kind when the five community cards include two Aces or two Kings
+```{r}
+Pr_3 <- dhyper(x = 2, N = 48, K = 3, n = 5) * 2
+```
+
+Then for each of the first two scenarios, we need to calculate the conditional probability that there is no 10
+among the five community cards, in which case Holz would improve to three of a kind (which actually happened).
+Thus, the probability that Holz's hand beats Salomon's hand is
+```{r}
+1 - (Pr_1pair * (1 - dhyper(x = 1, N = 47, K = 2, n = 4)) +
+     Pr_2pair * (1 - dhyper(x = 1, N = 46, K = 2, n = 3)) +
+     Pr_3)
+```
+Thus, Holz would be a slight favorite and this conclusion would continue to hold if we were more rigorous about 
+accounting for the tiny probability that one or both of their hands ends up being better than three of a kind.
+However, this problem ignores the possibility that Kaverman has an Ace, which is an important consideration
+that we take up in the next problem.
+
+## Probability that Kaverman has an Ace
+
+This question can be answered just by counting up the proportion of hands that Kaverman would go all-in with
+that have an Ace that is not `r card("A", "H")` but do not have `r card("10", "S")` or `r card("10", "C")`. That
+leaves
+
+* Big pairs (Js or better), of which there are 21 remaining hands:
+    * `r card("A", "S")` `r card("A", "D")`, `r card("A", "S")` `r card("A", "C")`, `r card("A", "D")` `r card("A", "C")`
+    * `r card("K", "S")` `r card("K", "H")`, `r card("K", "S")` `r card("K", "D")`, `r card("K", "S")` `r card("K", "C")`,
+      `r card("K", "H")` `r card("K", "D")`, `r card("K", "H")` `r card("K", "C")`, `r card("K", "D")` `r card("K", "C")`  
+    * `r card("Q", "S")` `r card("Q", "H")`, `r card("Q", "S")` `r card("Q", "D")`, `r card("Q", "S")` `r card("Q", "C")`,
+      `r card("Q", "H")` `r card("Q", "D")`, `r card("Q", "H")` `r card("Q", "C")`, `r card("Q", "D")` `r card("Q", "C")`
+    * `r card("J", "S")` `r card("J", "H")`, `r card("J", "S")` `r card("J", "D")`, `r card("J", "S")` `r card("J", "C")`,
+      `r card("J", "H")` `r card("J", "D")`, `r card("J", "H")` `r card("J", "C")`, `r card("J", "D")` `r card("J", "C")`
+* A pair of 10s, of which there is only $1$ combination remaining:
+    * `r card("10", "H")` `r card("10", "D")`
+* Medium pairs (6s or better), of which there are four pairs $\times$ six suit combinations for 24 hands:
+    * `r card("9", "S")` `r card("9", "H")`, `r card("9", "S")` `r card("9", "D")`, `r card("9", "S")` `r card("9", "C")`,
+      `r card("9", "H")` `r card("9", "D")`, `r card("9", "H")` `r card("9", "C")`, `r card("9", "D")` `r card("9", "C")`,  
+    * `r card("8", "S")` `r card("8", "H")`, `r card("8", "S")` `r card("8", "D")`, `r card("8", "S")` `r card("8", "C")`,
+      `r card("8", "H")` `r card("8", "D")`, `r card("8", "H")` `r card("8", "C")`, `r card("8", "D")` `r card("8", "C")`,
+    * `r card("7", "S")` `r card("7", "H")`, `r card("7", "S")` `r card("7", "D")`, `r card("7", "S")` `r card("7", "C")`,
+      `r card("7", "H")` `r card("7", "D")`, `r card("7", "H")` `r card("7", "C")`, `r card("7", "D")` `r card("7", "C")`,  
+    * `r card("6", "S")` `r card("6", "H")`, `r card("6", "S")` `r card("6", "D")`, `r card("6", "S")` `r card("6", "C")`,
+      `r card("6", "H")` `r card("6", "D")`, `r card("6", "H")` `r card("6", "C")`, `r card("6", "D")` `r card("6", "C")`
+* Ace and at least a nine of the same suit, of which there are 13 remaining hands:
+    * `r card("A", "S")` `r card("K", "S")`, `r card("A", "S")` `r card("Q", "S")`, `r card("A", "S")` `r card("J", "S")`,
+      `r card("A", "S")` `r card("9", "S")`
+    * `r card("A", "D")` `r card("K", "D")`, `r card("A", "D")` `r card("Q", "D")`,
+      `r card("A", "D")` `r card("J", "D")`, `r card("A", "D")` `r card("10", "D")`, `r card("A", "D")` `r card("9", "D")`
+    * `r card("A", "C")` `r card("K", "C")`, `r card("A", "C")` `r card("Q", "C")`, `r card("A", "C")` `r card("J", "C")`,
+      `r card("A", "C")` `r card("9", "C")`
+* Ace and a five of the same suit, for any of the three remaining suits: `r card("A", "S")` `r card("5", "S")`,
+  `r card("A", "D")` `r card("5", "D")`, `r card("A", "C")` `r card("5", "C")`
+* Both cards at least 10 of the same suit, of which there 18 remaining hands:
+    * `r card("K", "S")` `r card("Q", "S")`, `r card("K", "S")` `r card("J", "S")`,
+      `r card("Q", "S")` `r card("J", "S")`
+    * `r card("K", "H")` `r card("Q", "H")`, `r card("K", "H")` `r card("J", "H")`, `r card("K", "H")` `r card("10", "H")`,
+      `r card("Q", "H")` `r card("J", "H")`, `r card("Q", "H")` `r card("10", "H")`, `r card("J", "H")` `r card("10", "H")`  
+    * `r card("K", "D")` `r card("Q", "D")`, `r card("K", "D")` `r card("J", "D")`, `r card("K", "D")` `r card("10", "D")`,
+      `r card("Q", "D")` `r card("J", "D")`, `r card("Q", "D")` `r card("10", "D")`, `r card("J", "D")` `r card("10", "D")` 
+    * `r card("K", "C")` `r card("Q", "C")`, `r card("K", "C")` `r card("J", "C")`,
+      `r card("Q", "C")` `r card("J", "C")`
+* Ace and at least a Jack of different suit, of which there are six intersections $\times {3 \choose 2}$ remaining suits for 27 hands:
+    * `r card("A", "S")` `r card("K", "H")`, `r card("A", "S")` `r card("K", "D")`, `r card("A", "S")` `r card("K", "C")`
+    * `r card("A", "S")` `r card("Q", "H")`, `r card("A", "S")` `r card("Q", "D")`, `r card("A", "S")` `r card("Q", "C")`
+    * `r card("A", "S")` `r card("J", "H")`, `r card("A", "S")` `r card("J", "D")`, `r card("A", "S")` `r card("J", "C")`
+    * `r card("A", "D")` `r card("K", "S")`, `r card("A", "D")` `r card("K", "H")`, `r card("A", "D")` `r card("K", "C")`
+    * `r card("A", "D")` `r card("Q", "S")`, `r card("A", "D")` `r card("Q", "H")`, `r card("A", "D")` `r card("Q", "C")`  
+    * `r card("A", "D")` `r card("J", "S")`, `r card("A", "D")` `r card("J", "H")`, `r card("A", "D")` `r card("J", "C")`
+    * `r card("A", "C")` `r card("K", "S")`, `r card("A", "C")` `r card("K", "H")`, `r card("A", "C")` `r card("K", "D")`
+    * `r card("A", "C")` `r card("Q", "S")`, `r card("A", "C")` `r card("Q", "H")`, `r card("A", "C")` `r card("Q", "D")`
+    * `r card("A", "C")` `r card("J", "S")`, `r card("A", "C")` `r card("J", "H")`, `r card("A", "C")` `r card("J", "D")`
+ 
+Of those $107$ hands, $46$ have at least one Ace, so the conditional probability that Kaverman has an Ace is
+
+$$\frac{46}{107} \approx 0.43$$
+Holz could then use this information to compute the probability that Salomon's remaining face-down card is
+an Ace given that it is an Ace or a King as
+
+$$\frac{46}{107} \times \frac{2}{6} + \frac{107 - 46}{107} \times \frac{3}{7} \approx 0.388$$
+although this does not account for the smaller but non-negligible possibility that Kaverman has a King.
+
+# How Much Expected Money Did Salomon Cost Himself?
+
+The bulk of the expected prize money comes from the roughly $\frac{1}{3}$ chance
+Salomon would have of winning first place and its prize of \$10 million
+```{r}
+stacks <- c(Salomon = 43800000, Holz = 20495000, Bonomo = 51030000, Smith = 19280000)
+proportions <- stacks / sum(stacks)
+Pr_1 <- proportions["Salomon"]
+E <- 10 * Pr_1
+```
+However, we also have to consider the probability that Salomon comes in second
+place, given that someone else comes in first place
+
+$$\Pr\left(\mbox{Salomon second}\right) = 
+  \Pr\left(\mbox{Holz, Salomon}\right) + \Pr\left(\mbox{Bonomo, Salomon}\right) +
+  \Pr\left(\mbox{Smith, Salomon}\right)$$
+
+or
+
+```{r}
+Pr_2 <- proportions["Holz"]   * stacks["Salomon"] / sum(stacks[c("Salomon", "Bonomo", "Smith")]) + 
+        proportions["Bonomo"] * stacks["Salomon"] / sum(stacks[c("Salomon", "Holz", "Smith")]) +
+        proportions["Smith"]  * stacks["Salomon"] / sum(stacks[c("Salomon", "Holz", "Bonomo")])
+```
+which is then multiplied by \$6 million
+```{r}
+E <- E + Pr_2 * 6
+```
+
+Similarly, we have to consider the probability that Salomon comes in third
+place, given that two other people come in first and second place
+
+$$\Pr\left(\mbox{Salomon third}\right) = 
+  \Pr\left(\mbox{Holz, Bonomo, Salomon}\right)  + \Pr\left(\mbox{Bonomo, Holz, Salomon}\right) + \\
+  \Pr\left(\mbox{Holz, Smith, Salomon}\right)   + \Pr\left(\mbox{Smith, Holz, Salomon}\right) + \\
+  \Pr\left(\mbox{Bonomo, Smith, Salomon}\right) + \Pr\left(\mbox{Smith, Bonomo, Salomon}\right)$$
+
+or in R code  
+```{r}
+Pr_3 <- proportions["Holz"] * 
+        stacks["Bonomo"]  / sum(stacks[c("Salomon", "Bonomo", "Smith")]) * 
+        stacks["Salomon"] / sum(stacks[c("Salomon", "Smith")]) + 
+  
+        proportions["Bonomo"] * 
+        stacks["Holz"] / sum(stacks[c("Salomon", "Holz", "Smith")]) * 
+        stacks["Salomon"] / sum(stacks[c("Salomon", "Smith")]) +
+  
+        proportions["Holz"] *
+        stacks["Smith"]  / sum(stacks[c("Salomon", "Bonomo", "Smith")]) *
+        stacks["Salomon"] / sum(stacks[c("Salomon", "Bonomo")]) + 
+  
+        proportions["Smith"] * 
+        stacks["Holz"] / sum(stacks[c("Salomon", "Bonomo")]) * 
+        stacks["Salomon"] / sum(stacks[c("Salomon", "Bonomo")]) +
+  
+        proportions["Bonomo"] * 
+        stacks["Smith"]  / sum(stacks[c("Salomon", "Holz", "Smith")]) *
+        stacks["Salomon"] / sum(stacks[c("Salomon", "Holz")]) +
+  
+        proportions["Smith"] * 
+        stacks["Bonomo"]  / sum(stacks[c("Salomon", "Holz", "Bonomo")]) * 
+        stacks["Salomon"] / sum(stacks[c("Salomon", "Holz")])
+```
+which gets multipled by \$4 million
+```{r}
+E <- E + Pr_3 * 4
+```
+Finally, we have the complimentary probability that Salomon comes in fourth place
+```{r}
+Pr_4 <- 1 - proportions["Salomon"] - Pr_2 - Pr_3
+```
+which gets multiplied by \$2.84 million
+```{r}
+(E <- E + Pr_4 * 2.84)
+```
+Altogether, Salomon's expected prize money if he had not exposed the `r card("A", "H")`
+would have been \$`r E` million, as opposed to the \$2.84 million he actually won.
