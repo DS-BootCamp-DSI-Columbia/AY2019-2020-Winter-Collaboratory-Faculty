@@ -45,7 +45,7 @@ This interactive course covers the basics of text mining using Python. Unstructu
 
 3:00pm - 4:00 pm
 
-* Putting things together
+* [Putting things together](session_notes/tsne.md)
 * Validation discussion
 
 ### Prerequisites
