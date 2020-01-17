@@ -33,6 +33,7 @@ re.findall('.{20}R.{20}', jd_demo)
 There's the pattern then the frequency
 
 **Patterns**
+
 |Regular Expression| Meaning| Example|
 |---|---|---|
 |`.`|Wildcard, anything will be matched|`re.findall(".", "wtl2109@columbia.edu")`|
