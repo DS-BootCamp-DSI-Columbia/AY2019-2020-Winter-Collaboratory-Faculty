@@ -16,7 +16,7 @@
 Assuming your previous exercise worked with `Counter()`, then
 `pandas.DataFrame()` should work nicely.
 
-For now, let's create the bag of words matrix **without** stemming but only lowercasing
+For now, let's create the bag of words matrix
 
 ```
 import json
@@ -34,10 +34,10 @@ indeed = json.load(open("../data/job_descriptions/indeed_job_descs_data+scientis
 tok_cnts = []
 for jd in indeed["job_descriptions"]:
     tokens = word_tokenize(jd.lower())
-    # tokens = [stemmer.stem(token) for token in tokens if token not in en_sw]
+    tokens = [stemmer.stem(token) for token in tokens if token not in en_sw]
     tok_cnts.append(Counter(tokens))
 
-freq_mat = pd.DataFrame(tok_cnts)
+bow = pd.DataFrame(tok_cnts)
 ```
 
 - What is the dimension of bow and what do they represent?
@@ -80,3 +80,4 @@ stem_vectorizer = CountVectorizer(analyzer=stem_analyzer)
 bow_skl = stem_vectorizer.fit_transform(indeed["job_descriptions"])
 freq_skl = bow_skl.toarray()
 ```
+Notice the warning is not an error!

@@ -76,7 +76,7 @@ Python's true value is in its large community of developers and users. To levera
 1. Make sure your command line prompt is under the environment you created (`text-mine` in this document).
 2. We will use the `conda install` command to install packages we need. Specifically, you should type in
     ```
-    conda install nltk scikit-learn pandas
+    conda install nltk scikit-learn pandas matplotlib
     ```
     ![conda commands](images/conda_install_nltk_packages.png)
 3. You should be able to confirm if the installation succeeded by repeating this little example below in your Jupyter Notebook

@@ -1,12 +1,19 @@
 # Basic String Manipulation and Regular Expression in Python
 
+### Launching your Jupyter notebook
+Launch your notebook, then use the "New" dropdown on the far right and choose "Python3".
+This launches a Python3 notebook (since Jupyter also supports R notebooks).
+
+![just launched jupyter](images/jupyter_just_launched.png)
+
+
 ### Data Introduction - Job Descriptions
 We have some Indeed [job descriptions on Google Drive](https://drive.google.com/open?id=1BXEl8iEMFsRjuyaIDJLVdtBRPFplFriV), download this to your desired working folder.
 
 Load the data into your Jupyter Notebook workspace
 ```
 import json
-indeed = json.load(open("../data/job_descriptions/indeed_job_descs_data+scientist.json",
+indeed = json.load(open("PATH/TO/indeed_job_descs_data+scientist.json",
                         "r"))
 ```
 

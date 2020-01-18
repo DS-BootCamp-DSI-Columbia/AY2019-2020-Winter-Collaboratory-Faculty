@@ -5,11 +5,14 @@
 
 Select only the top tf-idf terms:
 ```
-top_terms = avg_tfidf.sort_values(ascending=False)[:200].index
-top_tfidf = tfidf_norm[top_terms]
+top_tokens = avg_tfidf.sort_values(ascending=False)[:200].index
+top_tfidf = tfidf_df[top_tokens]
 ```
 
-Cluster using t-SNE
+- with the `top_tfidf`, our documents are each expressed using 200 dimensions
+- To facilitate plotting, we want to preserve the distance between documents using only 2 dimensions. t-SNE can help achieve this.
+- To learn more about t-SNE, here's a [great tutorial](https://youtu.be/RJVL80Gg3lA).
+
 ```
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
@@ -34,3 +37,5 @@ for title in job_titles:
 # Save the different methods into different plots
 plt.show()
 ```
+
+![tsne plot](images/indeed_job_cluster.png)

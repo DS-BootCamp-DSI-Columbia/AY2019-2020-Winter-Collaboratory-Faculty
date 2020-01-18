@@ -63,7 +63,7 @@ tokens = word_tokenize("R is awesome")
 ```
 
 ### Practice
-Let's use the same Indeed [job descriptions on Google Drive](https://drive.google.com/open?id=1BXEl8iEMFsRjuyaIDJLVdtBRPFplFriV)  and tokenize the third document.
+Let's use the same Indeed [job descriptions on Google Drive](https://drive.google.com/open?id=1BXEl8iEMFsRjuyaIDJLVdtBRPFplFriV)  and tokenize the **3rd** document.
 ```
 import json
 indeed = json.load(open("../data/job_descriptions/indeed_job_descs_data+scientist.json",
@@ -91,7 +91,10 @@ lemmatizer.lemmatize("are", pos="v")
 lemmatizer.lemmatize("cats")
 ```
 
-- By default, `PorterStemmer()` automatically lowercases your text, this may not be desirable
+- `PorterStemmer()` lowercases **some** text...
+  ```
+  stemmer.stem("At")
+  ```
 - Stress test these capabilities, i.e. come up with examples that will disappoint you.
 
 For more information, see [nltk.stem](https://www.nltk.org/api/nltk.stem.html)
